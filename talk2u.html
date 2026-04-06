@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Net OS · Messaging</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #F2F2F7;
+            --surface: #FFFFFF;
+            --surface2: #F7F7FA;
+            --sep: rgba(60, 60, 67, .18);
+            --sep2: rgba(60, 60, 67, .09);
+            --txt: #000;
+            --txt2: rgba(60, 60, 67, .6);
+            --txt3: rgba(60, 60, 67, .36);
+            --blue: #007AFF;
+            --green: #34C759;
+            --red: #FF3B30;
+            --purple: #5856D6;
+            --orange: #FF9500;
+            --mono: 'IBM Plex Mono', monospace;
+            --brand: 'Syne', system-ui;
+            --ui: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+            --sw: 272px
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            font-family: var(--ui)
+        }
+
+        #app {
+            display: flex;
+            height: 100vh
+        }
+
+        #sidebar {
+            width: var(--sw);
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: .5px solid var(--sep);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        #brand {
+            padding: 13px 14px 10px;
+            border-bottom: .5px solid var(--sep2)
+        }
+
+        #brand h1 {
+            font-family: var(--brand);
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--txt);
+            letter-spacing: -.2px
+        }
+
+        .did-row {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--txt3);
+            margin-top: 3px;
+            word-break: break-all
+        }
+
+        .st-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 6px
+        }
+
+        .sdot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green)
+        }
+
+        .slab {
+            font-size: 11px;
+            color: var(--txt2)
+        }
+
+        #theta-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            border-bottom: .5px solid var(--sep2);
+            background: var(--surface2)
+        }
+
+        #theta-row label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--txt3);
+            white-space: nowrap
+        }
+
+        #thr {
+            flex: 1;
+            accent-color: var(--purple)
+        }
+
+        #thv {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--purple);
+            min-width: 28px;
+            text-align: right
+        }
+
+        #chlabel {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--txt3);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            padding: 8px 14px 4px
+        }
+
+        #contacts {
+            overflow-y: auto;
+            flex: 1;
+            padding-bottom: 8px
+        }
+
+        .ci {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-bottom: .5px solid var(--sep2);
+            cursor: pointer;
+            transition: background .1s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .ci:hover {
+            background: var(--bg)
+        }
+
+        .ci.active {
+            background: #EAF2FF
+        }
+
+        .ci::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            border-radius: 0 2px 2px 0;
+            transition: background .4s, opacity .4s
+        }
+
+        .ci.conv::before {
+            background: var(--green);
+            opacity: .9
+        }
+
+        .ci.appr::before {
+            background: var(--orange);
+            opacity: .7
+        }
+
+        .ci:not(.conv):not(.appr)::before {
+            background: var(--sep);
+            opacity: .4
+        }
+
+        .av {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+            color: #fff
+        }
+
+        .cm {
+            flex: 1;
+            min-width: 0
+        }
+
+        .cn {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--txt);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .cp {
+            font-size: 11.5px;
+            color: var(--txt2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px
+        }
+
+        .pb {
+            width: 38px;
+            height: 3px;
+            background: var(--sep2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 2px
+        }
+
+        .pf {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .6s ease
+        }
+
+        .cr {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            flex-shrink: 0
+        }
+
+        .ct {
+            font-size: 10.5px;
+            color: var(--txt3)
+        }
+
+        .cb {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--mono);
+            letter-spacing: .3px;
+            white-space: nowrap
+        }
+
+        .cb.yes {
+            background: #E8FAF0;
+            color: #1a7a3a
+        }
+
+        .cb.near {
+            background: #FFF3E0;
+            color: #8a4a00
+        }
+
+        .cb.no {
+            background: var(--bg);
+            color: var(--txt3);
+            border: .5px solid var(--sep)
+        }
+
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg)
+        }
+
+        #chat-header {
+            background: var(--surface);
+            border-bottom: .5px solid var(--sep);
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 10px;
+            flex-shrink: 0;
+            min-height: 54px
+        }
+
+        .hav {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0
+        }
+
+        .hi {
+            flex: 1;
+            min-width: 0
+        }
+
+        .hn {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--txt)
+        }
+
+        .hd {
+            font-size: 10px;
+            color: var(--txt3);
+            font-family: var(--mono)
+        }
+
+        .cpill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 9px;
+            border-radius: 7px;
+            border: .5px solid var(--sep);
+            background: var(--bg);
+            font-size: 10px;
+            font-family: var(--mono);
+            cursor: pointer;
+            flex-shrink: 0
+        }
+
+        .cpill .cpdot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        #logbtn {
+            background: none;
+            border: .5px solid var(--sep);
+            border-radius: 7px;
+            padding: 4px 9px;
+            font-size: 10px;
+            font-family: var(--mono);
+            color: var(--txt3);
+            cursor: pointer;
+            flex-shrink: 0;
+            white-space: nowrap
+        }
+
+        #sigbar {
+            background: var(--surface2);
+            border-bottom: .5px solid var(--sep2);
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 12px;
+            height: 30px;
+            flex-shrink: 0;
+            font-size: 9px
+        }
+
+        .sg {
+            display: flex;
+            align-items: center;
+            gap: 5px
+        }
+
+        .sgl {
+            font-weight: 600;
+            color: var(--txt3);
+            font-family: var(--mono);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            min-width: 42px
+        }
+
+        .sgt {
+            width: 44px;
+            height: 3px;
+            background: var(--sep2);
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .sgf {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .5s ease
+        }
+
+        .sge .sgf {
+            background: var(--orange)
+        }
+
+        .sgd .sgf {
+            background: var(--purple)
+        }
+
+        .sgp .sgf {
+            background: var(--blue)
+        }
+
+        .sgv {
+            font-family: var(--mono);
+            min-width: 26px;
+            text-align: right
+        }
+
+        #cconv {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: var(--mono);
+            font-size: 9px;
+            flex-wrap: nowrap;
+            white-space: nowrap
+        }
+
+        #mwrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px
+        }
+
+        #mwrap::-webkit-scrollbar {
+            width: 4px
+        }
+
+        #mwrap::-webkit-scrollbar-thumb {
+            background: var(--sep);
+            border-radius: 2px
+        }
+
+        .mr {
+            display: flex;
+            align-items: flex-end;
+            gap: 7px;
+            margin-bottom: 6px
+        }
+
+        .mr.sent {
+            flex-direction: row-reverse
+        }
+
+        .mav {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .mr.sent .mav {
+            display: none
+        }
+
+        .bb {
+            max-width: 68%;
+            padding: 9px 14px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.45;
+            word-break: break-word
+        }
+
+        .bb.sent {
+            background: var(--blue);
+            color: #fff;
+            border-bottom-right-radius: 5px
+        }
+
+        .bb.recv {
+            background: var(--surface);
+            color: var(--txt);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 0 0 .5px var(--sep2)
+        }
+
+        .bb.fl {
+            animation: bIn .22s ease
+        }
+
+        @keyframes bIn {
+            from {
+                opacity: 0;
+                transform: scale(.94) translateY(6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .mm {
+            font-size: 10.5px;
+            color: var(--txt3);
+            margin: 2px 6px 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px
+        }
+
+        .mm.sent {
+            flex-direction: row-reverse
+        }
+
+        .chk {
+            color: var(--blue)
+        }
+
+        .tdiv {
+            text-align: center;
+            margin: 14px 0 10px;
+            font-size: 11px;
+            color: var(--txt3);
+            font-weight: 500
+        }
+
+        .rev {
+            text-align: center;
+            margin: 8px auto;
+            font-family: var(--mono);
+            font-size: 9.5px;
+            color: var(--purple);
+            background: #EEEEFD;
+            padding: 4px 12px;
+            border-radius: 6px;
+            align-self: center;
+            animation: bIn .2s ease
+        }
+
+        .tr2 {
+            display: flex;
+            align-items: flex-end;
+            gap: 7px;
+            margin-top: 4px
+        }
+
+        .tb {
+            background: var(--surface);
+            box-shadow: 0 0 0 .5px var(--sep2);
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            padding: 9px 13px;
+            display: flex;
+            gap: 4px;
+            align-items: center
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--txt3);
+            animation: bn 1.2s infinite
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: .2s
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: .4s
+        }
+
+        @keyframes bn {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+                opacity: .5
+            }
+
+            40% {
+                transform: translateY(-5px);
+                opacity: 1
+            }
+        }
+
+        #ibar {
+            min-height: 58px;
+            background: var(--surface);
+            border-top: .5px solid var(--sep);
+            display: flex;
+            align-items: flex-end;
+            padding: 9px 12px;
+            gap: 8px;
+            flex-shrink: 0
+        }
+
+        #minp {
+            flex: 1;
+            border: .5px solid var(--sep);
+            border-radius: 20px;
+            padding: 9px 14px;
+            font-size: 15px;
+            font-family: var(--ui);
+            background: var(--bg);
+            color: var(--txt);
+            resize: none;
+            overflow: hidden;
+            outline: none;
+            line-height: 1.45;
+            max-height: 120px;
+            overflow-y: auto;
+            transition: border-color .15s
+        }
+
+        #minp:focus {
+            border-color: var(--blue)
+        }
+
+        #minp::placeholder {
+            color: var(--txt3)
+        }
+
+        #sbtn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform .1s, opacity .15s;
+            opacity: .4
+        }
+
+        #sbtn.active {
+            opacity: 1
+        }
+
+        #sbtn:active {
+            transform: scale(.92)
+        }
+
+        #sbtn svg {
+            fill: white;
+            width: 16px;
+            height: 16px
+        }
+
+        #empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--txt3)
+        }
+
+        #empty .ic {
+            font-size: 42px
+        }
+
+        #lpanel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 320px;
+            background: var(--surface);
+            border-left: .5px solid var(--sep);
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform .25s cubic-bezier(0.32, 0.72, 0, 1)
+        }
+
+        #lpanel.open {
+            transform: translateX(0)
+        }
+
+        #lph {
+            padding: 11px 14px;
+            border-bottom: .5px solid var(--sep);
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        #lph h3 {
+            font-family: var(--brand);
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--txt)
+        }
+
+        .ltab {
+            background: none;
+            border: .5px solid var(--sep);
+            border-radius: 6px;
+            padding: 3px 9px;
+            font-size: 10px;
+            font-family: var(--mono);
+            color: var(--txt3);
+            cursor: pointer
+        }
+
+        .ltab.active {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue)
+        }
+
+        #clbtn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--blue);
+            font-size: 15px;
+            padding: 0 4px
+        }
+
+        #lbody {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        #lbody::-webkit-scrollbar {
+            width: 3px
+        }
+
+        #lbody::-webkit-scrollbar-thumb {
+            background: var(--sep);
+            border-radius: 2px
+        }
+
+        .le {
+            background: var(--bg);
+            border-radius: 7px;
+            padding: 8px 10px;
+            font-family: var(--mono);
+            font-size: 9.5px;
+            color: var(--txt2);
+            line-height: 1.65;
+            border-left: 3px solid var(--blue);
+            animation: bIn .18s ease
+        }
+
+        .le.lconv {
+            border-left-color: var(--green)
+        }
+
+        .le .let {
+            font-weight: 600;
+            color: var(--txt);
+            font-size: 10.5px
+        }
+
+        .le .lec {
+            color: var(--purple)
+        }
+
+        .le .leca {
+            color: var(--orange)
+        }
+
+        .cpvm {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: .5px solid var(--sep2);
+            margin-bottom: 8px
+        }
+
+        .cpvn {
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-bottom: 4px
+        }
+
+        .cpr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+            font-size: 9.5px
+        }
+
+        .cprl {
+            font-family: var(--mono);
+            color: var(--txt3)
+        }
+
+        .cprv {
+            font-family: var(--mono);
+            font-weight: 500
+        }
+
+        .cpt {
+            width: 100%;
+            height: 3px;
+            background: var(--sep2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1px
+        }
+
+        .cpf {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .5s ease
+        }
+
+        .cpcond {
+            margin-top: 10px;
+            padding: 9px 11px;
+            border-radius: 7px;
+            font-size: 9.5px;
+            line-height: 1.55
+        }
+
+        .cpcond.yes {
+            background: #E8FAF0;
+            border: .5px solid rgba(52, 199, 89, .3)
+        }
+
+        .cpcond.no {
+            background: var(--bg);
+            border: .5px solid var(--sep2)
+        }
+
+        .cchips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px
+        }
+
+        .cchip {
+            font-family: var(--mono);
+            font-size: 8.5px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: #EEEEFD;
+            color: var(--purple)
+        }
+
+        .cchip.ov {
+            background: #E8FAF0;
+            color: #1a7a3a
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <aside id="sidebar">
+            <div id="brand">
+                <h1>Sovereign Net OS</h1>
+                <div class="did-row" id="myDIDel">generating…</div>
+                <div class="st-row">
+                    <div class="sdot"></div><span class="slab">Genesis/messaging · CGK v4</span>
+                </div>
+            </div>
+            <div id="theta-row">
+                <label>θ (theta)</label>
+                <input type="range" id="thr" min="0.1" max="0.9" step="0.05" value="0.5">
+                <span id="thv">0.50</span>
+            </div>
+            <div id="chlabel">Channels</div>
+            <div id="contacts"></div>
+        </aside>
+        <main id="main">
+            <div id="empty">
+                <div class="ic">💬</div>
+                <p>Select a channel to begin</p>
+            </div>
+            <div id="carea" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+                <div id="chat-header">
+                    <div class="hav" id="hav"></div>
+                    <div class="hi">
+                        <div class="hn" id="hname"></div>
+                        <div class="hd" id="hdid"></div>
+                    </div>
+                    <div class="cpill" id="cpill">
+                        <div class="cpdot" id="cpdot"></div><span id="cptext">Checking…</span>
+                    </div>
+                    <button id="logbtn">Event Log ↗</button>
+                </div>
+                <div id="sigbar">
+                    <div class="sg sge"><span class="sgl">energy</span>
+                        <div class="sgt">
+                            <div class="sgf" id="sfe" style="width:0%"></div>
+                        </div><span class="sgv" id="sve">0.00</span>
+                    </div>
+                    <div class="vs" style="width:1px;height:14px;background:var(--sep2);margin:0 4px;"></div>
+                    <div class="sg sgd"><span class="sgl">decay</span>
+                        <div class="sgt">
+                            <div class="sgf" id="sfd" style="width:0%"></div>
+                        </div><span class="sgv" id="svd">0.00</span>
+                    </div>
+                    <div class="vs" style="width:1px;height:14px;background:var(--sep2);margin:0 4px;"></div>
+                    <div class="sg sgp"><span class="sgl">priority</span>
+                        <div class="sgt">
+                            <div class="sgf" id="sfp" style="width:0%"></div>
+                        </div><span class="sgv" id="svp">0.00</span>
+                    </div>
+                    <div id="cconv"><span class="cop">pᴬ</span><span class="cv" id="cpa">–</span><span class="cop">></span><span class="cth" id="cth1">θ</span><span class="cop">&amp;</span><span class="cop">pᴮ</span><span class="cv" id="cpb">–</span><span class="cop">></span><span class="cth" id="cth2">θ</span><span class="cop">&amp; corr</span><span class="cv" id="ccorr">–</span><span class="vs" style="margin:0 3px;width:1px;height:12px;background:var(--sep2);"></span><span class="cv" id="cres">–</span></div>
+                </div>
+                <div id="mwrap"></div>
+                <div id="ibar">
+                    <textarea id="minp" rows="1" placeholder="Type a message..." onkeydown="hk(event)" oninput="hi(this)"></textarea>
+                    <button id="sbtn" onclick="send()"><svg viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                        </svg></button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="lpanel">
+        <div id="lph">
+            <h3>DDC Inspector</h3>
+            <div><button class="ltab active" onclick="sw('log')">Event Log</button><button class="ltab" onclick="sw('conv')">Convergence</button></div>
+            <button id="clbtn" onclick="closeLog()">✕</button>
+        </div>
+        <div id="lbody"></div>
+    </div>
+    <script>
+        const myDID = 'did:sos:' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('');
+        document.getElementById('myDIDel').textContent = myDID;
+        const bc = new BroadcastChannel('sov-mesh');
+        const myVM = {
+            id: myDID,
+            log: [],
+            corrSpace: new Set()
+        };
+        const vms = {};
+        const glog = [];
+        const state = {
+            channels: {}
+        };
+        let THETA = 0.5,
+            ACH = null,
+            ridx = {},
+            ltab = 'log';
+        const PEERS = [{
+            id: 'alice',
+            name: 'Alice Chen',
+            did: 'did:sos:a1b2c3d4e5f6a7b8',
+            color: '#5856D6',
+            ini: 'AC',
+            reps: ["The convergence condition is elegant.", "My priority just crossed θ.", "corrSpace overlap confirmed."]
+        }, {
+            id: 'bob',
+            name: 'Bob Martinez',
+            did: 'did:sos:c3d4e5f6a7b8c9d0',
+            color: '#34C759',
+            ini: 'BM',
+            reps: ["Hey! Mesh looks healthy.", "My priority is at 0.52.", "corrSpace overlap detected."]
+        }, {
+            id: 'net',
+            name: 'DDC Network',
+            did: 'did:sos:broadcast',
+            color: '#FF9500',
+            ini: 'DN',
+            reps: ["SYSTEM · 3 peers online", "CONVERGENCE · ROUTING INITIATED"]
+        }];
+
+        function h8() {
+            return Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')
+        }
+
+        function uid() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 3 | 8)).toString(16)
+            })
+        }
+        const PRIMARY = new Set(['MSG_SENT', 'MSG_RECV']);
+
+        function energy(vm) {
+            const p = vm.log.filter(e => PRIMARY.has(e.type));
+            return p.length / Math.max(1, vm.log.length)
+        }
+
+        function decay(vm) {
+            const p = vm.log.filter(e => PRIMARY.has(e.type));
+            if (!p.length) return 1;
+            const li = vm.log.lastIndexOf(p[p.length - 1]);
+            return 1 - ((vm.log.length - 1 - li) / Math.max(1, vm.log.length))
+        }
+
+        function priority(vm) {
+            return energy(vm) * 0.5 + (1 - decay(vm)) * 0.5
+        }
+
+        function conv(vmA, vmB) {
+            const pA = priority(vmA),
+                pB = priority(vmB),
+                ov = [...vmA.corrSpace].some(id => vmB.corrSpace.has(id));
+            return {
+                pA,
+                pB,
+                ov,
+                ok: pA > THETA && pB > THETA && ov
+            }
+        }
+
+        function dispatch(vm, ev) {
+            const e = {
+                ...ev,
+                id: ev.id || uid(),
+                ts: ev.ts || Date.now(),
+                correlationId: ev.correlationId || uid(),
+                causationId: ev.causationId || null,
+                from: ev.from || vm.id,
+                vmId: vm.id
+            };
+            vm.log.push(e);
+            glog.push(e);
+            if (e.correlationId) vm.corrSpace.add(e.correlationId);
+            applyDelta(reduce(e));
+            bc.postMessage(e);
+            return e
+        }
+
+        function reduce(e) {
+            if (e.type === 'MSG_SENT' || e.type === 'MSG_RECV') return {
+                op: 'msg',
+                ch: e.channelId,
+                m: {
+                    id: e.id,
+                    ts: e.ts,
+                    type: e.type,
+                    text: e.payload.text,
+                    correlationId: e.correlationId
+                }
+            };
+            if (e.type === 'CHANNEL_OPEN') return {
+                op: 'open',
+                ch: e.channelId,
+                meta: e.payload
+            };
+            if (e.type === 'PEER_CONVERGED') return {
+                op: 'setconv',
+                ch: e.channelId
+            };
+            return null
+        }
+
+        function applyDelta(d) {
+            if (!d) return;
+            if (d.op === 'open') {
+                if (!state.channels[d.ch]) state.channels[d.ch] = {
+                    messages: [],
+                    typing: false,
+                    converged: false,
+                    ...d.meta
+                }
+            } else if (d.op === 'msg') {
+                state.channels[d.ch]?.messages.push(d.m)
+            } else if (d.op === 'setconv') {
+                if (state.channels[d.ch]) state.channels[d.ch].converged = true
+            }
+        }
+        bc.onmessage = e => {
+            if (e.data.from === myDID) return;
+            const ev = e.data;
+            if (ev.type === 'MSG_SENT' || ev.type === 'MSG_RECV' || ev.type === 'PEER_CONVERGED') applyDelta(reduce(ev));
+            renderMsgs();
+            renderContacts();
+            updSig()
+        }
+
+        function init() {
+            PEERS.forEach(p => {
+                vms[p.id] = {
+                    id: p.did,
+                    log: [],
+                    corrSpace: new Set()
+                };
+                dispatch(myVM, {
+                    type: 'CHANNEL_OPEN',
+                    channelId: p.id,
+                    payload: {
+                        name: p.name,
+                        did: p.did,
+                        color: p.color,
+                        ini: p.ini
+                    }
+                })
+            });
+            const base = Date.now() - 180000;
+            [{
+                ch: 'alice',
+                sent: false,
+                t: "Hey! Your node just appeared."
+            }, {
+                ch: 'alice',
+                sent: true,
+                t: "CGK v4 live."
+            }, {
+                ch: 'bob',
+                sent: false,
+                t: "Welcome to the network 👋"
+            }].forEach((s, i) => {
+                const cid = uid();
+                const ev = {
+                    type: s.sent ? 'MSG_SENT' : 'MSG_RECV',
+                    channelId: s.ch,
+                    ts: base + i * 18000,
+                    from: s.sent ? myDID : vms[s.ch].id,
+                    correlationId: cid,
+                    payload: {
+                        text: s.t
+                    }
+                };
+                dispatch(myVM, ev);
+                dispatch(vms[s.ch], ev)
+            })
+        }
+
+        function renderContacts() {
+            const el = document.getElementById('contacts');
+            el.innerHTML = '';
+            PEERS.forEach(p => {
+                const ch = state.channels[p.id];
+                if (!ch) return;
+                const pv = vms[p.id];
+                const c = conv(myVM, pv);
+                const last = ch.messages[ch.messages.length - 1];
+                let cls = '',
+                    bc = 'no',
+                    bt = 'IDLE';
+                if (c.ok) {
+                    cls = 'conv';
+                    bc = 'yes';
+                    bt = 'CONVERGED'
+                } else if (c.pA > THETA * 0.7 || c.pB > THETA * 0.7) {
+                    cls = 'appr';
+                    bc = 'near';
+                    bt = 'APPROACHING'
+                }
+                const pf = Math.round(c.pA * 100);
+                const d = document.createElement('div');
+                d.className = `ci ${cls}${ACH===p.id?' active':''}`;
+                d.onclick = () => openCh(p.id);
+                d.innerHTML = `<div class="av" style="background:${p.color}">${p.ini}</div><div class="cm"><div class="cn">${p.name}</div><div class="cp">${last?last.text:''}</div><div class="pb"><div class="pf" style="width:${pf}%;background:${c.pA>THETA?'var(--blue)':'var(--orange)'}"></div></div></div><div class="cr"><span class="ct">${last?new Date(last.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</span><span class="cb ${bc}">${bt}</span></div>`;
+                el.appendChild(d)
+            })
+        }
+
+        function openCh(id) {
+            ACH = id;
+            const p = PEERS.find(x => x.id === id);
+            if (!p) return;
+            document.getElementById('empty').style.display = 'none';
+            document.getElementById('carea').style.display = 'flex';
+            document.getElementById('hav').textContent = p.ini;
+            document.getElementById('hav').style.background = p.color;
+            document.getElementById('hname').textContent = p.name;
+            document.getElementById('hdid').textContent = p.did;
+            renderMsgs();
+            renderContacts();
+            updSig()
+        }
+
+        function renderMsgs() {
+            if (!ACH) return;
+            const wrap = document.getElementById('mwrap');
+            const ch = state.channels[ACH];
+            if (!ch) return;
+            const p = PEERS.find(x => x.id === ACH);
+            wrap.innerHTML = '';
+            ch.messages.forEach(m => {
+                const sent = m.type === 'MSG_SENT';
+                const r = document.createElement('div');
+                r.className = `mr ${sent?'sent':'recv'}`;
+                r.innerHTML = `<div class="mav" style="background:${p.color}">${p.ini}</div><div class="bb ${sent?'sent':'recv'}">${m.text}</div>`;
+                wrap.appendChild(r)
+            });
+            scrollB()
+        }
+
+        function send() {
+            const inp = document.getElementById('minp');
+            const text = inp.value.trim();
+            if (!text || !ACH) return;
+            inp.value = '';
+            const cid = uid();
+            const pv = vms[ACH];
+            dispatch(myVM, {
+                type: 'MSG_SENT',
+                channelId: ACH,
+                payload: {
+                    text
+                }
+            });
+            dispatch(pv, {
+                type: 'MSG_SENT',
+                channelId: ACH,
+                payload: {
+                    text
+                }
+            });
+            renderMsgs();
+            renderContacts();
+            updSig();
+            schedReply(cid)
+        }
+
+        function schedReply(cid) {
+            const chId = ACH;
+            const peer = PEERS.find(p => p.id === chId);
+            const pv = vms[chId];
+            setTimeout(() => {
+                const text = peer.reps[ridx[peer.id] % peer.reps.length];
+                ridx[peer.id]++;
+                dispatch(pv, {
+                    type: 'MSG_RECV',
+                    channelId: chId,
+                    payload: {
+                        text
+                    }
+                });
+                dispatch(myVM, {
+                    type: 'MSG_RECV',
+                    channelId: chId,
+                    payload: {
+                        text
+                    }
+                });
+                renderMsgs();
+                renderContacts();
+                updSig()
+            }, 900 + Math.random() * 1300)
+        }
+
+        function updSig() {
+            if (!ACH) return;
+            const pv = vms[ACH];
+            const e = energy(myVM),
+                d = decay(myVM),
+                p = priority(myVM);
+            document.getElementById('sfe').style.width = (e * 100).toFixed(1) + '%';
+            document.getElementById('sfd').style.width = (d * 100).toFixed(1) + '%';
+            document.getElementById('sfp').style.width = (p * 100).toFixed(1) + '%';
+            document.getElementById('sve').textContent = e.toFixed(2);
+            document.getElementById('svd').textContent = d.toFixed(2);
+            document.getElementById('svp').textContent = p.toFixed(2);
+            const c = conv(myVM, pv);
+            document.getElementById('cpa').textContent = p.toFixed(2);
+            document.getElementById('cpb').textContent = priority(pv).toFixed(2);
+            document.getElementById('ccorr').textContent = c.ov ? 'true' : 'false';
+            document.getElementById('cres').textContent = c.ok ? '→ CONVERGED' : '→ NOT YET';
+            const dot = document.getElementById('cpdot'),
+                txt = document.getElementById('cptext');
+            if (c.ok) {
+                dot.style.background = 'var(--green)';
+                txt.textContent = 'Converged · Routing active'
+            } else {
+                dot.style.background = 'var(--orange)';
+                txt.textContent = 'Approaching'
+            }
+        }
+
+        function hk(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send()
+            }
+        }
+
+        function hi(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+            document.getElementById('sbtn').classList.toggle('active', el.value.trim().length > 0)
+        }
+
+        function scrollB() {
+            const w = document.getElementById('mwrap');
+            w.scrollTop = w.scrollHeight
+        }
+
+        function openLog() {
+            document.getElementById('lpanel').classList.add('open')
+        }
+
+        function closeLog() {
+            document.getElementById('lpanel').classList.remove('open')
+        }
+
+        function sw(t) {
+            ltab = t
+        }
+        init();
+        setTimeout(() => {
+            openCh('alice')
+        }, 200);
+    </script>
+</body>
+
+</html>
