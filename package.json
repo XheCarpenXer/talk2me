@@ -1,17 +1,24 @@
 {
   "name": "sovereign-mesh-relay",
-  "version": "1.0.0",
-  "description": "Pure WebSocket signaling relay for Sovereign Mesh",
+  "version": "2.0.0",
+  "description": "libp2p Circuit Relay v2 + GossipSub server for Sovereign Mesh",
+  "type": "module",
   "main": "mesh-relay.js",
   "scripts": {
     "start": "node mesh-relay.js",
-    "dev": "node --watch mesh-relay.js"
+    "dev":   "node --watch mesh-relay.js"
   },
   "dependencies": {
-    "ws": "^8.20.0"
+    "@chainsafe/libp2p-gossipsub": "^14.1.0",
+    "@chainsafe/libp2p-noise":     "^16.0.0",
+    "@chainsafe/libp2p-yamux":     "^7.0.1",
+    "@libp2p/circuit-relay-v2":   "^3.1.0",
+    "@libp2p/identify":            "^3.0.0",
+    "@libp2p/pubsub-peer-discovery": "^11.0.0",
+    "@libp2p/websockets":          "^9.0.0",
+    "libp2p":                      "^2.4.2"
   },
   "engines": {
-    "node": ">=18"
-  },
-  "license": "SEE LICENSE IN LICENSE-COMMUNITY"
+    "node": ">=20"
+  }
 }
