@@ -1,1331 +1,3463 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sovereign Net OS · Messaging</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sovereign OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --os-bg: #000;
+  --dock-bg: rgba(255,255,255,0.10);
+  --dock-border: rgba(255,255,255,0.18);
+  --glass: rgba(255,255,255,0.07);
+  --glass-border: rgba(255,255,255,0.12);
+  --text: #fff;
+  --text2: rgba(255,255,255,0.6);
+  --text3: rgba(255,255,255,0.3);
+  --mono: 'IBM Plex Mono', monospace;
+  --brand: 'Syne', sans-serif;
+  --ui: 'DM Sans', sans-serif;
+  --bar-h: 44px;
+  --dock-h: 88px;
+}
+html, body { height: 100%; overflow: hidden; font-family: var(--ui); background: #000; -webkit-font-smoothing: antialiased; }
+
+/* WALLPAPER */
+#wallpaper {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse at 15% 40%, #0d1554 0%, #060b20 40%, #000 100%);
+  overflow: hidden;
+}
+#wallpaper::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 70%, rgba(99,102,241,0.15) 0%, transparent 60%);
+}
+#stars { position: absolute; inset: 0; }
+.star {
+  position: absolute; background: #fff; border-radius: 50%;
+  animation: twinkle var(--dur, 3s) ease-in-out infinite var(--del, 0s);
+}
+@keyframes twinkle { 0%,100%{opacity:var(--lo,.08)} 50%{opacity:var(--hi,.9)} }
+
+/* STATUS BAR */
+#statusbar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--bar-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px; z-index: 1000; pointer-events: none;
+}
+#sb-time { font-family: var(--brand); font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.2px; }
+#sb-right { display: flex; align-items: center; gap: 7px; }
+.sb-pill {
+  background: rgba(255,255,255,0.15); border-radius: 99px;
+  padding: 3px 10px; font-family: var(--mono); font-size: 13px; color: rgba(255,255,255,0.95);
+  letter-spacing: 0.3px;
+}
+
+/* HOME SCREEN */
+#homescreen {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+#homescreen.hidden { opacity: 0; transform: scale(1.06); pointer-events: none; }
+
+#home-label {
+  margin-top: calc(var(--bar-h) + 24px);
+  font-family: var(--brand); font-size: 18px; font-weight: 700;
+  color: rgba(255,255,255,0.90); letter-spacing: 2px; text-transform: uppercase;
+}
+
+#app-grid {
+  display: grid; grid-template-columns: repeat(3, 90px);
+  gap: 20px 24px; padding: 28px 24px;
+  margin-top: 4px;
+}
+.app-icon {
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  animation: iconIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.app-icon:nth-child(1) { animation-delay: 0.06s; }
+.app-icon:nth-child(2) { animation-delay: 0.12s; }
+.app-icon:nth-child(3) { animation-delay: 0.18s; }
+@keyframes iconIn { from{opacity:0;transform:scale(0.4) translateY(30px)} to{opacity:1;transform:none} }
+
+.icon-shell {
+  width: 88px; height: 88px; border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px; position: relative;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.12) inset;
+  transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.16s;
+}
+.app-icon:active .icon-shell { transform: scale(0.86); box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+
+.i-qmesh { background: linear-gradient(145deg, #1a1060 0%, #6366f1 100%); }
+.i-ddemo { background: linear-gradient(145deg, #0b2212 0%, #16a34a 100%); }
+.i-dik   { background: linear-gradient(145deg, #0e1a0b 0%, #00cc6a 100%); }
+
+.nbadge {
+  position: absolute; top: -5px; right: -5px;
+  min-width: 20px; height: 20px; border-radius: 10px;
+  background: #ff3b30; border: 2.5px solid #000;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff; font-family: var(--mono);
+  padding: 0 4px;
+}
+
+.icon-label {
+  font-size: 16px; font-weight: 600; color: #fff;
+  text-align: center; letter-spacing: -0.1px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+}
+
+/* Home screen bottom info */
+#home-hint {
+  position: fixed; bottom: calc(var(--dock-h) + 12px); left: 0; right: 0;
+  text-align: center; font-family: var(--mono); font-size: 14px;
+  color: rgba(255,255,255,0.65); letter-spacing: 0.5px; pointer-events: none;
+}
+
+/* DOCK */
+#dock {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--dock-h); display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding-bottom: 8px;
+}
+#dock-inner {
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 28px; padding: 10px 22px;
+  display: flex; gap: 14px; align-items: center;
+  box-shadow: 0 2px 40px rgba(0,0,0,0.4);
+}
+.di {
+  width: 62px; height: 62px; border-radius: 17px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; cursor: pointer; position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+}
+.di:active { transform: scale(0.86); }
+.di.running::after {
+  content: '';
+  position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+}
+.dock-sep { width: 1px; height: 34px; background: rgba(255,255,255,0.15); margin: 0 2px; }
+
+/* APP WINDOWS */
+.app-window {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transform: scale(0.9) translateY(50px);
+  transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease;
+  overflow: hidden;
+}
+.app-window.open { opacity: 1; transform: none; pointer-events: all; }
+.app-window.closing { transform: scale(0.88) translateY(60px); opacity: 0; }
+
+.win-bar {
+  height: var(--bar-h); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; position: relative; z-index: 5;
+}
+.win-back {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; font-family: var(--ui); font-weight: 500;
+  padding: 7px 10px; border-radius: 10px;
+  transition: background 0.15s;
+}
+.win-back:hover { background: rgba(255,255,255,0.1); }
+.win-back svg { width: 10px; height: 16px; }
+.win-title {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-family: var(--brand); font-size: 18px; font-weight: 700;
+  pointer-events: none;
+}
+.app-frame { flex: 1; overflow: hidden; position: relative; }
+.app-content { width: 100%; height: 100%; overflow: auto; }
+
+/* qmesh needs flex column for its internal layout */
+#qmesh-content { display: flex; flex-direction: column; overflow: hidden; }
+#dik-content { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="wallpaper"><div id="stars"></div></div>
+
+<div id="statusbar">
+  <div id="sb-time">--:--</div>
+  <div id="sb-right">
+    <span class="sb-pill" id="sb-signal">●●●●</span>
+    <span class="sb-pill">WiFi</span>
+    <span class="sb-pill" id="sb-battery">100%</span>
+  </div>
+</div>
+
+<div id="homescreen">
+  <div id="home-label">Sovereign OS</div>
+  <div id="app-grid">
+
+    <div class="app-icon" onclick="openApp('qmesh')">
+      <div class="icon-shell i-qmesh">
+        ⟨ψ⟩
+        <div class="nbadge" id="badge-qmesh">2</div>
+      </div>
+      <span class="icon-label">QMesh</span>
+    </div>
+
+    <div class="app-icon" onclick="openApp('ddemo')">
+      <div class="icon-shell i-ddemo">⑂</div>
+      <span class="icon-label">Causal DAG</span>
+    </div>
+
+    <div class="app-icon" onclick="openApp('dik')">
+      <div class="icon-shell i-dik">🎯</div>
+      <span class="icon-label">DIK Kernel</span>
+    </div>
+
+  </div>
+</div>
+
+<div id="home-hint">tap an app to open · swipe down to go home</div>
+
+<div id="dock">
+  <div id="dock-inner">
+    <div class="di i-qmesh" id="dock-qmesh" onclick="openApp('qmesh')">⟨ψ⟩</div>
+    <div class="di i-ddemo" id="dock-ddemo" onclick="openApp('ddemo')">⑂</div>
+    <div class="dock-sep"></div>
+    <div class="di i-dik"   id="dock-dik"   onclick="openApp('dik')">🎯</div>
+  </div>
+</div>
+
+<!-- ══════ APP WINDOWS ══════ -->
+
+<div class="app-window" id="win-qmesh">
+  <div class="win-bar" style="background:#090d1a;border-bottom:1px solid rgba(100,120,255,0.12)">
+    <button class="win-back" style="color:#a78bfa" onclick="closeApp('qmesh')">
+      <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="8 1 2 8 8 15"/></svg>
+      Home
+    </button>
+    <span class="win-title" style="color:#a78bfa">⟨ψ| QMESH |ψ⟩</span>
+  </div>
+  <div class="app-frame">
+    <div class="app-content" id="qmesh-content"></div>
+  </div>
+</div>
+
+<div class="app-window" id="win-ddemo">
+  <div class="win-bar" style="background:#111;border-bottom:1px solid #333">
+    <button class="win-back" style="color:#ddd" onclick="closeApp('ddemo')">
+      <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="8 1 2 8 8 15"/></svg>
+      Home
+    </button>
+    <span class="win-title" style="color:#ddd">Causal Compute v3</span>
+  </div>
+  <div class="app-frame">
+    <div class="app-content" id="ddemo-content"></div>
+  </div>
+</div>
+
+<div class="app-window" id="win-dik">
+  <div class="win-bar" style="background:#12121a;border-bottom:2px solid #00ff88">
+    <button class="win-back" style="color:#00ff88" onclick="closeApp('dik')">
+      <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="8 1 2 8 8 15"/></svg>
+      Home
+    </button>
+    <span class="win-title" style="color:#00ff88">DIK Kernel</span>
+  </div>
+  <div class="app-frame">
+    <div class="app-content" id="dik-content"></div>
+  </div>
+</div>
+
+<script>
+// ── Clock ──
+function tick() {
+  const n = new Date();
+  document.getElementById('sb-time').textContent =
+    String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+}
+tick(); setInterval(tick, 5000);
+
+// ── Stars ──
+(function(){
+  const s = document.getElementById('stars');
+  for (let i=0; i<90; i++) {
+    const e = document.createElement('div');
+    e.className = 'star';
+    const sz = Math.random() < 0.6 ? 1 : Math.random() < 0.5 ? 2 : 3;
+    e.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*5}s;--del:-${Math.random()*6}s;--lo:${(0.05+Math.random()*0.1).toFixed(2)};--hi:${(0.5+Math.random()*0.5).toFixed(2)}`;
+    s.appendChild(e);
+  }
+})();
+
+// ── App bodies (lazy-loaded) ──
+const APP_BODIES = {
+  qmesh: `<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:      #050810;
+  --bg2:     #090d1a;
+  --bg3:     #0e1426;
+  --border:  rgba(100,120,255,0.12);
+  --border2: rgba(100,120,255,0.06);
+  --indigo:  #6366f1;
+  --cyan:    #22d3ee;
+  --violet:  #a78bfa;
+  --emerald: #34d399;
+  --amber:   #fbbf24;
+  --rose:    #fb7185;
+  --slate:   #475569;
+  --text:    #e2e8f0;
+  --muted:   #64748b;
+  --dim:     #1e293b;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Header ── */
+#header {
+  height: 52px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+#logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--violet);
+  white-space: nowrap;
+}
+
+#logo span { color: var(--cyan); }
+
+.hbtn {
+  padding: 5px 13px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.hbtn:hover { border-color: var(--indigo); color: var(--violet); }
+.hbtn.active {
+  background: rgba(99,102,241,0.15);
+  border-color: var(--indigo);
+  color: var(--violet);
+}
+
+#status-bar {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+#status-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── Main layout ── */
+#main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Canvas ── */
+#canvas-wrap {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+#mesh {
+  width: 100%;
+  height: 100%;
+  cursor: default;
+  display: block;
+}
+
+/* ── HUD overlays ── */
+#hud-legend {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 12px 14px;
+  background: rgba(9,13,26,0.85);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.9;
+  pointer-events: none;
+}
+
+#hud-legend .lrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ldot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+#node-inspector {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 200px;
+  padding: 14px;
+  background: rgba(9,13,26,0.9);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+#node-inspector.visible { opacity: 1; }
+#ni-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 10px; font-family: 'Syne', sans-serif; }
+.ni-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.ni-label { color: var(--muted); width: 60px; flex-shrink: 0; }
+.ni-bar-wrap { flex: 1; height: 3px; background: var(--dim); border-radius: 2px; overflow: hidden; }
+.ni-bar { height: 100%; border-radius: 2px; transition: width 0.4s; }
+.ni-val { width: 28px; text-align: right; color: var(--slate); }
+
+#hud-help {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.9;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Toast ── */
+#toast {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: rgba(99,102,241,0.95);
+  color: white;
+  padding: 7px 18px;
+  border-radius: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 50;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Chat panel ── */
+#chat-panel {
+  width: 0;
+  min-width: 0;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.32s cubic-bezier(0.4,0,0.2,1),
+              min-width 0.32s cubic-bezier(0.4,0,0.2,1);
+  flex-shrink: 0;
+}
+#chat-panel.open { width: 360px; min-width: 360px; }
+
+/* Chat header */
+#chat-head {
+  padding: 16px;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+#chat-close {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+#chat-close:hover { border-color: var(--rose); color: var(--rose); }
+
+#chat-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+#chat-info { flex: 1; min-width: 0; }
+#chat-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#chat-state {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+/* Overlap meter */
+#overlap-bar-wrap {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+
+#overlap-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+#overlap-track {
+  height: 4px;
+  background: var(--dim);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#overlap-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--indigo), var(--cyan));
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* State vectors side by side */
+#state-vectors {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sv-block { }
+.sv-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+}
+
+.sv-bars { display: flex; gap: 2px; height: 20px; align-items: flex-end; }
+.sv-bar {
+  flex: 1;
+  border-radius: 1px 1px 0 0;
+  min-height: 2px;
+  transition: height 0.4s ease;
+}
+
+/* Messages */
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-behavior: smooth;
+}
+
+#messages::-webkit-scrollbar { width: 3px; }
+#messages::-webkit-scrollbar-track { background: transparent; }
+#messages::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+.msg-group { display: flex; flex-direction: column; gap: 3px; }
+.msg-group.sent { align-items: flex-end; }
+.msg-group.recv { align-items: flex-start; }
+
+.msg-bubble {
+  max-width: 82%;
+  padding: 8px 13px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+  animation: msg-appear 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes msg-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(6px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+.msg-bubble.sent {
+  background: rgba(99,102,241,0.2);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-bottom-right-radius: 4px;
+}
+
+.msg-bubble.recv {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.msg-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  padding: 0 2px;
+  letter-spacing: 0.04em;
+}
+
+/* Typing */
+.typing-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+}
+
+.td {
+  width: 5px; height: 5px;
+  background: var(--slate);
+  border-radius: 50%;
+  animation: td-bounce 1.1s ease infinite;
+}
+.td:nth-child(2) { animation-delay: 0.18s; }
+.td:nth-child(3) { animation-delay: 0.36s; }
+@keyframes td-bounce {
+  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+}
+
+.empty-glyph {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.3;
+}
+
+/* Input area */
+#input-area {
+  border-top: 1px solid var(--border2);
+  padding: 12px 16px;
+  flex-shrink: 0;
+}
+
+/* Superposition intent display */
+#sp-display {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 8px;
+  height: 16px;
+  align-items: flex-end;
+}
+
+.sp-seg {
+  border-radius: 1px 1px 0 0;
+  min-height: 2px;
+  transition: flex 0.3s ease, background 0.3s ease, height 0.3s ease;
+}
+
+#sp-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+#msg-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  resize: none;
+  outline: none;
+  min-height: 38px;
+  max-height: 96px;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+#msg-input:focus { border-color: rgba(99,102,241,0.4); }
+#msg-input::placeholder { color: var(--muted); }
+
+#send-btn {
+  width: 38px; height: 38px;
+  background: var(--indigo);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s, transform 0.1s;
+  flex-shrink: 0;
+}
+#send-btn:hover { background: #4f46e5; }
+#send-btn:active { transform: scale(0.94); }
+#send-btn svg { width: 15px; height: 15px; }
+</style>
+<div id="header">
+  <div id="logo">⟨ψ| Q<span>MESH</span> |ψ⟩</div>
+  <button class="hbtn" id="btn-entangle">⊗ ENTANGLE</button>
+  <button class="hbtn" id="btn-deentangle">⊘ BREAK</button>
+  <button class="hbtn" id="btn-measure">◉ MEASURE ALL</button>
+  <div id="status-bar">
+    <span id="status-dot"></span>
+    <span id="status-txt">MESH ONLINE · 0 LINKS</span>
+  </div>
+</div>
+
+<div id="main">
+  <div id="canvas-wrap">
+    <canvas id="mesh"></canvas>
+
+    <div id="hud-legend">
+      <div class="lrow"><div class="ldot" style="background:#22d3ee"></div> available</div>
+      <div class="lrow"><div class="ldot" style="background:#fbbf24"></div> thinking</div>
+      <div class="lrow"><div class="ldot" style="background:#fb7185"></div> busy</div>
+      <div class="lrow"><div class="ldot" style="background:#475569"></div> away</div>
+      <div class="lrow"><div class="ldot" style="background:#a78bfa"></div> deep focus</div>
+      <div class="lrow"><div class="ldot" style="background:#1e293b;border:1px solid #334155"></div> offline</div>
+    </div>
+
+    <div id="node-inspector">
+      <div id="ni-name">NODE_ID</div>
+      <div id="ni-rows"></div>
+    </div>
+
+    <div id="hud-help">
+      CLICK node to inspect  ·  DOUBLE-CLICK entangled node to open channel<br>
+      ENTANGLE mode: select two nodes  ·  BREAK: click entangled pair to unlink
+    </div>
+
+    <div id="toast"></div>
+  </div>
+
+  <!-- Chat panel -->
+  <div id="chat-panel">
+    <div id="chat-head">
+      <div id="chat-avatar"></div>
+      <div id="chat-info">
+        <div id="chat-name"></div>
+        <div id="chat-state"></div>
+      </div>
+      <button id="chat-close">✕</button>
+    </div>
+
+    <div id="overlap-bar-wrap">
+      <div id="overlap-label">
+        <span>STATE OVERLAP</span>
+        <span id="overlap-pct">0%</span>
+      </div>
+      <div id="overlap-track"><div id="overlap-fill"></div></div>
+    </div>
+
+    <div id="state-vectors">
+      <div class="sv-block">
+        <div class="sv-title">YOU ψ</div>
+        <div class="sv-bars" id="sv-you"></div>
+      </div>
+      <div class="sv-block">
+        <div class="sv-title" id="sv-other-label">THEM ψ</div>
+        <div class="sv-bars" id="sv-other"></div>
+      </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="input-area">
+      <div id="sp-label">
+        <span>MESSAGE SUPERPOSITION</span>
+        <span id="sp-intent">—</span>
+      </div>
+      <div id="sp-display">
+        <div class="sp-seg"></div>
+        <div class="sp-seg"></div>
+        <div class="sp-seg"></div>
+        <div class="sp-seg"></div>
+        <div class="sp-seg"></div>
+        <div class="sp-seg"></div>
+      </div>
+      <div id="input-row">
+        <textarea id="msg-input" placeholder="compose superposition…" rows="1"></textarea>
+        <button id="send-btn" title="Collapse & Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════
+//   CONSTANTS
+// ═══════════════════════════════════════════════════
+
+const TAU = Math.PI * 2;
+
+const BASIS_LABELS  = ['available','thinking','busy','away','deep-focus','offline'];
+const BASIS_COLORS  = ['#22d3ee','#fbbf24','#fb7185','#475569','#a78bfa','#1e3a5f'];
+const BASIS_LIGHT   = ['#67e8f9','#fde68a','#fda4af','#94a3b8','#c4b5fd','#334155'];
+
+// Hue-shifted node palette — each user has a distinct identity color
+const USER_COLORS = ['#6366f1','#22d3ee','#34d399','#f59e0b','#f472b6','#a78bfa'];
+
+// ═══════════════════════════════════════════════════
+//   UTILS
+// ═══════════════════════════════════════════════════
+
+function normalize(v) {
+  const s = v.reduce((a, b) => a + b, 0);
+  return s === 0 ? v.map(() => 1/v.length) : v.map(x => x/s);
+}
+
+function lerp(a, b, t) { return a + (b-a) * t; }
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function randInt(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }
+
+function randFloat(lo, hi) { return lo + Math.random() * (hi - lo); }
+
+function randPick(arr) { return arr[randInt(0, arr.length - 1)]; }
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return { r, g, b };
+}
+
+function rgba(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex);
+  return \`rgba(\${r},\${g},\${b},\${alpha.toFixed(3)})\`;
+}
+
+function dist2(ax, ay, bx, by) {
+  return Math.sqrt((ax-bx)**2 + (ay-by)**2);
+}
+
+function dominantIdx(v) {
+  return v.indexOf(Math.max(...v));
+}
+
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
+
+// ═══════════════════════════════════════════════════
+//   QNODE — one user
+// ═══════════════════════════════════════════════════
+
+class QNode {
+  constructor({ id, name, initials, colorIdx, x, y, isYou = false }) {
+    this.id       = id;
+    this.name     = name;
+    this.initials = initials;
+    this.color    = USER_COLORS[colorIdx % USER_COLORS.length];
+    this.x        = x;
+    this.y        = y;
+    this.isYou    = isYou;
+
+    // State vector across 6 basis states
+    if (isYou) {
+      this.amps = normalize([0.75, 0.15, 0.05, 0.02, 0.02, 0.01]);
+    } else {
+      const raw = Array.from({ length: 6 }, () => Math.random() * Math.random());
+      this.amps = normalize(raw);
+    }
+
+    this.entanglements = new Set(); // Set<nodeId>
+    this.channels = {};             // { nodeId: Message[] }
+    this.overlap  = {};             // { nodeId: 0..1 }
+    this.unread   = {};             // { nodeId: count }
+    this.isTyping = {};             // { nodeId: bool }
+
+    // Animation
+    this.phase   = Math.random() * TAU;
+    this.radius  = 36;
+    this.glow    = 0;               // 0..1 glow pulse on message
+  }
+
+  get dominantState() { return dominantIdx(this.amps); }
+  get stateLabel()    { return BASIS_LABELS[this.dominantState]; }
+  get stateColor()    { return BASIS_COLORS[this.dominantState]; }
+
+  collapseToward(basisIdx, strength) {
+    this.amps = normalize(this.amps.map((v, i) => {
+      return lerp(v, i === basisIdx ? 1 : 0, strength);
+    }));
+    this.glow = 1;
+  }
+
+  // Overlap: this node's state drifts toward other's
+  overlapWith(other, amount) {
+    this.amps = normalize(this.amps.map((v, i) => lerp(v, other.amps[i], amount)));
+    this.overlap[other.id] = clamp((this.overlap[other.id] || 0) + amount * 1.5, 0, 1);
+  }
+
+  tick(dt) {
+    this.phase = (this.phase + 0.018) % TAU;
+    this.glow  = Math.max(0, this.glow - dt * 1.2);
+
+    // Slow thermal drift back toward superposition
+    const even = Array(6).fill(1/6);
+    this.amps = normalize(this.amps.map((v, i) => lerp(v, even[i], 0.0005)));
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//   PARTICLE — message in transit
+// ═══════════════════════════════════════════════════
+
+class Particle {
+  constructor(from, to, color) {
+    this.from  = from;
+    this.to    = to;
+    this.color = color;
+    this.t     = 0;
+    this.done  = false;
+  }
+  tick() {
+    this.t += 0.022;
+    if (this.t >= 1) { this.t = 1; this.done = true; }
+  }
+  get pos() {
+    const e = this.t < 0.5
+      ? 2 * this.t * this.t
+      : -1 + (4 - 2 * this.t) * this.t;
+    return {
+      x: lerp(this.from.x, this.to.x, e),
+      y: lerp(this.from.y, this.to.y, e)
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//   QUANTUM MESH — the graph engine
+// ═══════════════════════════════════════════════════
+
+class QuantumMesh {
+  constructor() {
+    this.nodes     = [];
+    this.particles = [];
+    this.you       = null;
+    this.time      = 0;
+    // Interaction state
+    this.mode         = 'select';  // 'select' | 'entangle' | 'break'
+    this.selected     = null;      // nodeId
+    this.entangleA    = null;      // first node in entangle flow
+    this.activeChat   = null;      // nodeId of open channel
+  }
+
+  add(node) {
+    this.nodes.push(node);
+    if (node.isYou) this.you = node;
+  }
+
+  get(id) { return this.nodes.find(n => n.id === id); }
+
+  entangle(aId, bId) {
+    const a = this.get(aId), b = this.get(bId);
+    if (!a || !b || aId === bId || a.entanglements.has(bId)) return false;
+    a.entanglements.add(bId);
+    b.entanglements.add(aId);
+    if (!a.channels[bId]) a.channels[bId] = [];
+    if (!b.channels[aId]) b.channels[aId] = [];
+    if (!a.overlap[bId]) a.overlap[bId] = 0.05;
+    if (!b.overlap[aId]) b.overlap[aId] = 0.05;
+    // Initial state pull on entanglement
+    a.overlapWith(b, 0.04);
+    b.overlapWith(a, 0.04);
+    return true;
+  }
+
+  deentangle(aId, bId) {
+    const a = this.get(aId), b = this.get(bId);
+    if (!a || !b) return;
+    a.entanglements.delete(bId);
+    b.entanglements.delete(aId);
+  }
+
+  isLinked(aId, bId) {
+    const a = this.get(aId);
+    return a ? a.entanglements.has(bId) : false;
+  }
+
+  get linkCount() {
+    let n = 0;
+    for (const nd of this.nodes)
+      n += nd.entanglements.size;
+    return n / 2;
+  }
+
+  send(fromId, toId, text) {
+    const from = this.get(fromId), to = this.get(toId);
+    if (!from || !to || !this.isLinked(fromId, toId)) return null;
+
+    const msg = { text, fromId, toId, ts: Date.now() };
+
+    if (!from.channels[toId]) from.channels[toId] = [];
+    if (!to.channels[fromId]) to.channels[fromId] = [];
+    from.channels[toId].push(msg);
+    to.channels[fromId].push(msg);
+
+    // Sender collapses toward available (active engagement)
+    from.collapseToward(0, 0.25);
+    // Receiver collapses toward thinking
+    to.collapseToward(1, 0.3);
+
+    // State overlap deepens with every message
+    from.overlapWith(to, 0.07);
+    to.overlapWith(from, 0.07);
+
+    // Particle
+    this.particles.push(new Particle(from, to, from.color));
+
+    // Chain propagation: nodes entangled with receiver feel a ripple
+    for (const eid of to.entanglements) {
+      if (eid !== fromId) {
+        const chain = this.get(eid);
+        if (chain) {
+          chain.collapseToward(1, 0.04);
+          setTimeout(() => {
+            this.particles.push(new Particle(to, chain, to.color));
+          }, 300);
+        }
+      }
+    }
+
+    // Unread
+    if (this.activeChat !== toId || !this.you || this.you.id !== toId) {
+      if (to.id !== (this.you && this.you.id)) {
+        // noop: other user
+      } else {
+        to.unread[fromId] = (to.unread[fromId] || 0) + 1;
+      }
+    }
+
+    return msg;
+  }
+
+  openChat(nodeId) {
+    if (!this.you || !this.isLinked(this.you.id, nodeId)) return;
+    this.activeChat = nodeId;
+    this.you.unread[nodeId] = 0;
+  }
+
+  closeChat() { this.activeChat = null; }
+
+  nodeAt(x, y) {
+    for (let i = this.nodes.length - 1; i >= 0; i--) {
+      const n = this.nodes[i];
+      if (dist2(n.x, n.y, x, y) <= n.radius + 10) return n;
+    }
+    return null;
+  }
+
+  tick(dt) {
+    this.time += dt;
+    for (const n of this.nodes) n.tick(dt);
+    this.particles = this.particles.filter(p => { p.tick(); return !p.done; });
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//   RENDERER
+// ═══════════════════════════════════════════════════
+
+class Renderer {
+  constructor(canvas, mesh) {
+    this.canvas = canvas;
+    this.ctx    = canvas.getContext('2d');
+    this.mesh   = mesh;
+    this._w     = 0;
+    this._h     = 0;
+    this.dpr    = devicePixelRatio || 1;
+  }
+
+  get W() { return this.canvas.offsetWidth; }
+  get H() { return this.canvas.offsetHeight; }
+
+  resize() {
+    const w = this.W, h = this.H;
+    if (this._w !== w || this._h !== h) {
+      this.canvas.width  = w * this.dpr;
+      this.canvas.height = h * this.dpr;
+      this._w = w; this._h = h;
+    }
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  }
+
+  clear() {
+    this.ctx.clearRect(0, 0, this.W, this.H);
+  }
+
+  drawGrid() {
+    const { ctx, W, H } = this;
+    const step = 44;
+    ctx.strokeStyle = 'rgba(100,120,255,0.04)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x < W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 0; y < H; y += step) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+
+  drawEntanglementLine(a, b) {
+    const { ctx, mesh } = this;
+    const t = mesh.time;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d  = Math.sqrt(dx*dx + dy*dy);
+    if (d < 1) return;
+
+    const overlap = Math.max(a.overlap[b.id] || 0, b.overlap[a.id] || 0);
+    const activity = a.glow + b.glow;
+
+    // Wave amplitude grows with overlap and recent messages
+    const waveAmp  = 4 + overlap * 16 + activity * 6;
+    const waveFreq = 0.04 + overlap * 0.015;
+    const speed    = 2.5 + overlap;
+
+    const nx = -dy/d, ny = dx/d; // perpendicular
+    const steps = Math.max(2, Math.floor(d / 3));
+
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const f  = i / steps;
+      const px = a.x + dx * f;
+      const py = a.y + dy * f;
+      // envelope = 0 at endpoints, peak at midpoint
+      const env  = Math.sin(f * Math.PI);
+      const wave = Math.sin(f * d * waveFreq + t * speed) * waveAmp * env;
+      const cx   = px + nx * wave;
+      const cy   = py + ny * wave;
+      i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+
+    const grd = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    const alpha = 0.18 + overlap * 0.55 + activity * 0.15;
+    grd.addColorStop(0, rgba(a.color, alpha));
+    grd.addColorStop(1, rgba(b.color, alpha));
+
+    ctx.strokeStyle = grd;
+    ctx.lineWidth   = 1 + overlap * 2.5;
+    ctx.shadowColor = rgba(a.color, 0.25);
+    ctx.shadowBlur  = overlap * 8;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+
+    // Unread badge on midpoint
+    const you = mesh.you;
+    if (you) {
+      const otherId = a.isYou ? b.id : (b.isYou ? a.id : null);
+      if (otherId) {
+        const unread = (you.unread[otherId] || 0);
+        if (unread > 0) {
+          const mx = (a.x + b.x) / 2 + nx * 10;
+          const my = (a.y + b.y) / 2 + ny * 10;
+          ctx.fillStyle = '#fb7185';
+          ctx.shadowColor = '#fb7185';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(mx, my, 9, 0, TAU);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 9px DM Sans';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(Math.min(unread, 9), mx, my);
+        }
+      }
+    }
+  }
+
+  drawParticle(p) {
+    const { ctx } = this;
+    const { x, y } = p.pos;
+    const alpha = Math.sin(p.t * Math.PI);
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur  = 14;
+    ctx.fillStyle   = rgba(p.color, alpha);
+    ctx.beginPath();
+    ctx.arc(x, y, 4.5, 0, TAU);
+    ctx.fill();
+    // Trail
+    ctx.fillStyle = rgba(p.color, alpha * 0.3);
+    ctx.beginPath();
+    ctx.arc(x, y, 7, 0, TAU);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  drawNode(node) {
+    const { ctx, mesh } = this;
+    const { x, y, radius, color, phase, glow, amps } = node;
+    const isActive = mesh.activeChat === node.id || mesh.selected === node.id;
+    const isEntangleTarget = mesh.mode === 'entangle' && mesh.entangleA &&
+                             mesh.entangleA !== node.id;
+
+    // Amplitude rings (6 state arcs around the node)
+    const ringR = radius + 14;
+    amps.forEach((amp, i) => {
+      if (amp < 0.02) return;
+      const startA = (i / 6) * TAU - TAU/4;
+      const endA   = startA + amp * TAU * 0.88;
+      ctx.beginPath();
+      ctx.arc(x, y, ringR + i * 2.2, startA, endA);
+      ctx.strokeStyle = rgba(BASIS_COLORS[i], 0.55 + amp * 0.4);
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    });
+
+    // Outer glow
+    if (glow > 0.01 || isActive) {
+      const grd = ctx.createRadialGradient(x, y, 0, x, y, radius + 28);
+      const ga = (isActive ? 0.22 : 0) + glow * 0.35;
+      grd.addColorStop(0, rgba(color, ga));
+      grd.addColorStop(1, rgba(color, 0));
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 28, 0, TAU);
+      ctx.fill();
+    }
+
+    // Breathing pulse ring
+    const breathR = radius + 4 + Math.sin(phase) * 2.5;
+    ctx.beginPath();
+    ctx.arc(x, y, breathR, 0, TAU);
+    ctx.strokeStyle = rgba(color, 0.15 + Math.sin(phase) * 0.05);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Main disc
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, TAU);
+    ctx.fillStyle = '#090d1a';
+    ctx.fill();
+    // Tinted inner fill based on dominant state
+    const grd2 = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    grd2.addColorStop(0, rgba(node.stateColor, 0.18));
+    grd2.addColorStop(1, rgba(node.stateColor, 0.04));
+    ctx.fillStyle = grd2;
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = isActive
+      ? rgba(color, 0.9)
+      : rgba(color, 0.4 + glow * 0.3);
+    ctx.lineWidth = isActive ? 2 : 1.5;
+    ctx.stroke();
+
+    // Entangle mode: dashed target ring
+    if (isEntangleTarget) {
+      const aring = radius + 7 + Math.sin(mesh.time * 4) * 2;
+      ctx.beginPath();
+      ctx.arc(x, y, aring, 0, TAU);
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = rgba('#a78bfa', 0.5);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Break mode: X overlay on entangled-with-you nodes
+    if (mesh.mode === 'break' && mesh.you && node.entanglements.has(mesh.you.id) && !node.isYou) {
+      ctx.strokeStyle = rgba('#fb7185', 0.7);
+      ctx.lineWidth = 2;
+      const sz = 10;
+      ctx.beginPath();
+      ctx.moveTo(x - sz, y - sz); ctx.lineTo(x + sz, y + sz);
+      ctx.moveTo(x + sz, y - sz); ctx.lineTo(x - sz, y + sz);
+      ctx.stroke();
+    }
+
+    // Initials
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = rgba(color, 0.95);
+    ctx.font = \`700 \${node.isYou ? 12 : 11}px 'Syne', sans-serif\`;
+    ctx.fillText(node.initials, x, y - 5);
+
+    // State label inside
+    ctx.fillStyle = rgba(node.stateColor, 0.8);
+    ctx.font = \`300 8px 'IBM Plex Mono', monospace\`;
+    ctx.fillText(node.stateLabel, x, y + 8);
+
+    // Name below
+    ctx.fillStyle = rgba(color, 0.6);
+    ctx.font = \`400 11px 'DM Sans', sans-serif\`;
+    ctx.fillText(node.name, x, y + radius + 14);
+
+    // Entangled indicator
+    if (mesh.you && node.entanglements.has(mesh.you.id) && !node.isYou) {
+      ctx.fillStyle = rgba('#a78bfa', 0.9);
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⊗', x + radius - 4, y - radius + 5);
+    }
+  }
+
+  draw() {
+    this.resize();
+    this.clear();
+    this.drawGrid();
+
+    const { mesh } = this;
+
+    // Draw entanglement lines (unique pairs)
+    const drawn = new Set();
+    for (const node of mesh.nodes) {
+      for (const eid of node.entanglements) {
+        const key = [node.id, eid].sort().join('|');
+        if (drawn.has(key)) continue;
+        drawn.add(key);
+        const other = mesh.get(eid);
+        if (other) this.drawEntanglementLine(node, other);
+      }
+    }
+
+    // Particles
+    for (const p of mesh.particles) this.drawParticle(p);
+
+    // Nodes
+    for (const node of mesh.nodes) this.drawNode(node);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//   AUTO-REPLY ENGINE
+// ═══════════════════════════════════════════════════
+
+const REPLIES = {
+  alice: [
+    "Hey! What's up? ✨",
+    "I've been in focus mode all morning — what's on your mind?",
+    "Oh interesting, tell me more",
+    "Did you check the latest state vectors? Wild stuff",
+    "Can we sync later today? I'm mid-experiment",
+    "lol yeah same honestly",
+    "Send me the link when you can 🙏",
+    "That makes total sense actually",
+    "I was just thinking about that too",
+  ],
+  bob: [
+    "In a meeting, back in 10",
+    "yeah makes sense",
+    "Busy rn but noted",
+    "What time works?",
+    "👍",
+    "Let's circle back tomorrow",
+    "Can you send the brief?",
+    "Sounds good",
+  ],
+  charlie: [
+    "🎯",
+    "Deep focus mode active, one sec…",
+    "Interesting approach — I'd validate the edge cases",
+    "I'm running an experiment on exactly that",
+    "Focus timer: 47min remaining 🔮",
+    "Let me think on it",
+    "Yeah, go with option B",
+  ],
+  diana: [
+    "Thinking it through…",
+    "Good timing — I was about to reach out",
+    "What's the priority here?",
+    "Love that idea!",
+    "Let me check and get back to you",
+    "Can we do this async?",
+    "What's the deadline?",
+    "Okay I see what you're going for",
+  ],
+};
+
+function scheduleReply(mesh, fromId, toId, ui) {
+  const from = mesh.get(fromId);
+  if (!from) return;
+  const delay = randInt(1100, 2800);
+
+  // Show typing
+  from.isTyping[toId] = true;
+  from.collapseToward(1, 0.35); // thinking
+  ui.refreshChat();
+
+  setTimeout(() => {
+    from.isTyping[toId] = false;
+    from.collapseToward(0, 0.25);
+    const text = randPick(REPLIES[fromId] || ['…']);
+    mesh.send(fromId, toId, text);
+    ui.refreshChat();
+    ui.updateChatHeader();
+  }, delay);
+}
+
+// ═══════════════════════════════════════════════════
+//   UI CONTROLLER
+// ═══════════════════════════════════════════════════
+
+class UI {
+  constructor(mesh) {
+    this.mesh = mesh;
+    this._lastMsgLen = 0;
+
+    this.$panel   = document.getElementById('chat-panel');
+    this.$msgs    = document.getElementById('messages');
+    this.$input   = document.getElementById('msg-input');
+    this.$sendBtn = document.getElementById('send-btn');
+    this.$spSegs  = [...document.querySelectorAll('.sp-seg')];
+    this.$ni      = document.getElementById('node-inspector');
+    this.$niName  = document.getElementById('ni-name');
+    this.$niRows  = document.getElementById('ni-rows');
+    this.$svYou   = document.getElementById('sv-you');
+    this.$svOther = document.getElementById('sv-other');
+    this.$toast   = document.getElementById('toast');
+
+    this._bindEvents();
+  }
+
+  _bindEvents() {
+    // Send
+    this.$sendBtn.addEventListener('click', () => this._send());
+    this.$input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this._send(); }
+    });
+    this.$input.addEventListener('input', e => {
+      this._updateSuperposition(e.target.value);
+      // Typing collapses you toward "thinking"
+      if (e.target.value && this.mesh.you) this.mesh.you.collapseToward(1, 0.015);
+    });
+
+    // Close chat
+    document.getElementById('chat-close').addEventListener('click', () => {
+      this.mesh.closeChat();
+      this.refreshPanel();
+    });
+
+    // Header buttons
+    document.getElementById('btn-entangle').addEventListener('click', () => this._setMode('entangle'));
+    document.getElementById('btn-deentangle').addEventListener('click', () => this._setMode('break'));
+    document.getElementById('btn-measure').addEventListener('click', () => this._measureAll());
+  }
+
+  _setMode(mode) {
+    if (this.mesh.mode === mode) {
+      this.mesh.mode = 'select';
+      this.mesh.entangleA = null;
+    } else {
+      this.mesh.mode = mode;
+      this.mesh.entangleA = null;
+    }
+    this._syncModeButtons();
+    this.toast(this.mesh.mode === 'select'
+      ? 'SELECT mode'
+      : this.mesh.mode === 'entangle'
+        ? '⊗ ENTANGLE: click two nodes to link'
+        : '⊘ BREAK: click a linked node to disconnect');
+  }
+
+  _syncModeButtons() {
+    document.getElementById('btn-entangle').classList.toggle('active', this.mesh.mode === 'entangle');
+    document.getElementById('btn-deentangle').classList.toggle('active', this.mesh.mode === 'break');
+  }
+
+  _measureAll() {
+    for (const n of this.mesh.nodes) {
+      const wi = n.amps.map((v, i) => ({ v, i }));
+      let rand = Math.random(), cumul = 0, chosen = 0;
+      for (const { v, i } of wi) { cumul += v; if (rand <= cumul) { chosen = i; break; } }
+      n.collapseToward(chosen, 0.85);
+    }
+    this.toast('◉ All nodes measured — states collapsed');
+  }
+
+  _send() {
+    const { mesh } = this;
+    if (!mesh.activeChat || !mesh.you) return;
+    const text = this.$input.value.trim();
+    if (!text) return;
+
+    mesh.send(mesh.you.id, mesh.activeChat, text);
+    this.$input.value = '';
+    this._updateSuperposition('');
+    this.refreshChat();
+    this.updateChatHeader();
+
+    // Schedule auto-reply from the other user
+    scheduleReply(mesh, mesh.activeChat, mesh.you.id, this);
+  }
+
+  _updateSuperposition(text) {
+    const intents = {
+      question:  /\\?/.test(text) ? 0.5 : 0.1,
+      thinking:  /how|why|what|when|where|think|maybe|perhaps/i.test(text) ? 0.4 : 0.08,
+      busy:      /no|not|can't|wont|wrong|bad/i.test(text) ? 0.5 : 0.05,
+      away:      /later|brb|afk|tomorrow|soon/i.test(text) ? 0.45 : 0.07,
+      excited:   /!|wow|great|yes|yay|amazing|love|cool/i.test(text) ? 0.5 : 0.08,
+      neutral:   0.12,
+    };
+    const weights = [
+      intents.question,
+      intents.thinking,
+      intents.busy,
+      intents.away,
+      intents.excited,
+      intents.neutral,
+    ];
+    const norm = normalize(weights);
+    const maxIntent = Math.max(...norm);
+    const labelMap = ['question','thinking','busy','away','excited','neutral'];
+    const idx = norm.indexOf(maxIntent);
+    const sp = document.getElementById('sp-intent');
+    if (sp) sp.textContent = text ? labelMap[idx].toUpperCase() : '—';
+
+    this.$spSegs.forEach((seg, i) => {
+      const h = text ? Math.max(4, Math.round(norm[i] * 16)) : 2;
+      seg.style.height  = h + 'px';
+      seg.style.flex    = (norm[i] * 6).toFixed(2);
+      seg.style.background = BASIS_COLORS[i];
+      seg.style.opacity = text ? '1' : '0.3';
+    });
+  }
+
+  // ── Node click handling ──
+
+  handleNodeClick(node) {
+    const { mesh } = this;
+
+    if (mesh.mode === 'entangle') {
+      if (!mesh.entangleA) {
+        mesh.entangleA = node.id;
+        this.toast(\`⊗ Selected \${node.name} — now click another node\`);
+      } else if (mesh.entangleA !== node.id) {
+        const ok = mesh.entangle(mesh.entangleA, node.id);
+        const aNode = mesh.get(mesh.entangleA);
+        this.toast(ok
+          ? \`⊗ \${aNode.name} ↔ \${node.name} entangled\`
+          : \`Already linked!\`);
+        mesh.entangleA = null;
+        mesh.mode = 'select';
+        this._syncModeButtons();
+        this._updateStatusBar();
+      }
+      return;
+    }
+
+    if (mesh.mode === 'break') {
+      if (mesh.you && mesh.isLinked(mesh.you.id, node.id) && !node.isYou) {
+        mesh.deentangle(mesh.you.id, node.id);
+        if (mesh.activeChat === node.id) { mesh.closeChat(); this.refreshPanel(); }
+        this.toast(\`⊘ Unlinked from \${node.name}\`);
+        this._updateStatusBar();
+      }
+      return;
+    }
+
+    // Select mode
+    mesh.selected = node.id;
+    this._showInspector(node);
+  }
+
+  handleNodeDblClick(node) {
+    const { mesh } = this;
+    if (node.isYou) return;
+    if (mesh.isLinked(mesh.you?.id, node.id)) {
+      mesh.openChat(node.id);
+      this.refreshPanel();
+    } else {
+      this.toast(\`Not entangled — use ⊗ ENTANGLE first\`);
+    }
+  }
+
+  _showInspector(node) {
+    this.$ni.classList.add('visible');
+    this.$niName.textContent = node.name.toUpperCase() + ' · ' + node.stateLabel;
+    this.$niName.style.color = node.color;
+    this.$niRows.innerHTML = BASIS_LABELS.map((label, i) => \`
+      <div class="ni-row">
+        <div class="ni-label">\${label}</div>
+        <div class="ni-bar-wrap">
+          <div class="ni-bar" style="width:\${Math.round(node.amps[i]*100)}%;background:\${BASIS_COLORS[i]}"></div>
+        </div>
+        <div class="ni-val">\${Math.round(node.amps[i]*100)}%</div>
+      </div>
+    \`).join('');
+  }
+
+  hideInspector() {
+    this.$ni.classList.remove('visible');
+    this.mesh.selected = null;
+  }
+
+  // ── Chat panel ──
+
+  refreshPanel() {
+    const { mesh } = this;
+    if (!mesh.activeChat) {
+      this.$panel.classList.remove('open');
+      return;
+    }
+    this.$panel.classList.add('open');
+    this.updateChatHeader();
+    this.refreshChat();
+  }
+
+  updateChatHeader() {
+    const { mesh } = this;
+    if (!mesh.activeChat || !mesh.you) return;
+    const other = mesh.get(mesh.activeChat);
+    if (!other) return;
+
+    const av = document.getElementById('chat-avatar');
+    av.textContent = other.initials;
+    av.style.background = rgba(other.color, 0.18);
+    av.style.border = \`2px solid \${rgba(other.color, 0.6)}\`;
+    av.style.color = other.color;
+
+    document.getElementById('chat-name').textContent = other.name;
+    const ol = Math.round((other.overlap[mesh.you.id] || 0) * 100);
+    document.getElementById('chat-state').textContent =
+      \`\${other.stateLabel} · overlap \${ol}%\`;
+
+    // Overlap bar
+    const pct = Math.min(100, Math.round((other.overlap[mesh.you.id] || 0) * 100));
+    document.getElementById('overlap-fill').style.width = pct + '%';
+    document.getElementById('overlap-pct').textContent = pct + '%';
+
+    // State vectors
+    document.getElementById('sv-other-label').textContent = other.name.toUpperCase().slice(0,6) + ' ψ';
+    this._renderStateVec(this.$svYou,   mesh.you);
+    this._renderStateVec(this.$svOther, other);
+  }
+
+  _renderStateVec(el, node) {
+    el.innerHTML = '';
+    node.amps.forEach((amp, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'sv-bar';
+      bar.style.background = BASIS_COLORS[i];
+      bar.style.height = Math.max(2, Math.round(amp * 20)) + 'px';
+      bar.style.flex = (amp * 6).toFixed(2);
+      bar.title = BASIS_LABELS[i] + ' ' + Math.round(amp*100) + '%';
+      el.appendChild(bar);
+    });
+  }
+
+  refreshChat() {
+    const { mesh } = this;
+    if (!mesh.activeChat || !mesh.you) return;
+    const other   = mesh.get(mesh.activeChat);
+    if (!other) return;
+
+    const msgs = mesh.you.channels[mesh.activeChat] || [];
+    const atBot = this.$msgs.scrollHeight - this.$msgs.scrollTop - this.$msgs.clientHeight < 40;
+
+    if (msgs.length === 0 && !other.isTyping[mesh.you.id]) {
+      this.$msgs.innerHTML = \`
+        <div class="empty-state">
+          <div class="empty-glyph">⟨ψ⟩</div>
+          Entangled — superposition collapsed<br>
+          send first message to materialize
+        </div>\`;
+      return;
+    }
+
+    this.$msgs.innerHTML = '';
+
+    // Group consecutive messages from same sender
+    let lastFrom = null;
+    let grp = null;
+
+    for (const msg of msgs) {
+      const isSent = msg.fromId === mesh.you.id;
+      const side = isSent ? 'sent' : 'recv';
+
+      if (msg.fromId !== lastFrom) {
+        grp = document.createElement('div');
+        grp.className = \`msg-group \${side}\`;
+        this.$msgs.appendChild(grp);
+        lastFrom = msg.fromId;
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = \`msg-bubble \${side}\`;
+      bubble.textContent = msg.text;
+      grp.appendChild(bubble);
+    }
+
+    // Meta on last bubble of each group
+    const metas = this.$msgs.querySelectorAll('.msg-group');
+    metas.forEach(g => {
+      const last = g.lastElementChild;
+      if (last && last.classList.contains('msg-bubble')) {
+        const lastMsg = msgs.filter(m =>
+          (m.fromId === mesh.you.id) === g.classList.contains('sent')
+        ).pop();
+        if (lastMsg) {
+          const meta = document.createElement('div');
+          meta.className = 'msg-meta';
+          meta.textContent = fmtTime(lastMsg.ts);
+          g.appendChild(meta);
+        }
+      }
+    });
+
+    // Typing indicator
+    if (other.isTyping[mesh.you.id]) {
+      const ti = document.createElement('div');
+      ti.className = 'typing-bubble';
+      ti.innerHTML = '<div class="td"></div><div class="td"></div><div class="td"></div>';
+      this.$msgs.appendChild(ti);
+    }
+
+    if (atBot || msgs.length !== this._lastMsgLen) {
+      this.$msgs.scrollTop = this.$msgs.scrollHeight;
+    }
+    this._lastMsgLen = msgs.length;
+  }
+
+  _updateStatusBar() {
+    document.getElementById('status-txt').textContent =
+      \`MESH ONLINE · \${this.mesh.linkCount} LINK\${this.mesh.linkCount !== 1 ? 'S' : ''}\`;
+  }
+
+  toast(msg, dur = 2600) {
+    clearTimeout(this._toastTimer);
+    this.$toast.textContent = msg;
+    this.$toast.classList.add('show');
+    this._toastTimer = setTimeout(() => this.$toast.classList.remove('show'), dur);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//   SETUP & INIT
+// ═══════════════════════════════════════════════════
+
+function setup(mesh) {
+  const canvas = document.getElementById('mesh');
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+  const cx = W / 2, cy = H / 2;
+  const spread = Math.min(W, H) * 0.32;
+
+  const users = [
+    { id:'you',     name:'You',     initials:'YOU', colorIdx:0, x:cx,                    y:cy,                    isYou:true  },
+    { id:'alice',   name:'Alice',   initials:'AL',  colorIdx:1, x:cx + Math.cos(0.3)*spread,    y:cy + Math.sin(0.3)*spread * 0.7    },
+    { id:'bob',     name:'Bob',     initials:'BO',  colorIdx:2, x:cx + Math.cos(2.4)*spread,    y:cy + Math.sin(2.4)*spread * 0.7    },
+    { id:'charlie', name:'Charlie', initials:'CH',  colorIdx:3, x:cx + Math.cos(4.1)*spread,    y:cy + Math.sin(4.1)*spread * 0.7    },
+    { id:'diana',   name:'Diana',   initials:'DI',  colorIdx:4, x:cx + Math.cos(5.2)*spread,    y:cy + Math.sin(5.2)*spread * 0.7    },
+    { id:'enzo',    name:'Enzo',    initials:'EN',  colorIdx:5, x:cx + Math.cos(1.5)*spread*1.15, y:cy + Math.sin(1.5)*spread * 0.6  },
+  ];
+
+  // Distinct initial states
+  const initAmps = [
+    null,  // you — handled in constructor
+    [0.7, 0.15, 0.05, 0.04, 0.04, 0.02],  // alice — mostly available
+    [0.08, 0.12, 0.65, 0.08, 0.05, 0.02], // bob — mostly busy
+    [0.05, 0.05, 0.05, 0.08, 0.72, 0.05], // charlie — deep focus
+    [0.15, 0.55, 0.12, 0.1,  0.05, 0.03], // diana — thinking
+    [0.12, 0.1,  0.08, 0.62, 0.04, 0.04], // enzo — away
+  ];
+
+  users.forEach((def, i) => {
+    const node = new QNode(def);
+    if (initAmps[i]) node.amps = normalize(initAmps[i]);
+    mesh.add(node);
+  });
+
+  // Pre-entangle: you ↔ alice, you ↔ bob
+  mesh.entangle('you', 'alice');
+  mesh.entangle('you', 'bob');
+  mesh.entangle('alice', 'charlie');
+  mesh.entangle('bob', 'diana');
+  mesh.entangle('charlie', 'enzo');
+}
+
+// ═══════════════════════════════════════════════════
+//   MAIN
+// ═══════════════════════════════════════════════════
+
+const mesh     = new QuantumMesh();
+const canvas   = document.getElementById('mesh');
+const renderer = new Renderer(canvas, mesh);
+const ui       = new UI(mesh);
+
+setup(mesh);
+ui._updateStatusBar();
+
+// ── Drag state ──
+let dragNode  = null;
+let dragOffX  = 0;
+let dragOffY  = 0;
+let mouseX    = 0;
+let mouseY    = 0;
+let didDrag   = false;
+
+function canvasXY(e) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: e.clientX - r.left,
+    y: e.clientY - r.top
+  };
+}
+
+canvas.addEventListener('mousedown', e => {
+  const { x, y } = canvasXY(e);
+  const node = mesh.nodeAt(x, y);
+  didDrag = false;
+  if (node) {
+    dragNode  = node;
+    dragOffX  = x - node.x;
+    dragOffY  = y - node.y;
+  } else {
+    ui.hideInspector();
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const { x, y } = canvasXY(e);
+  mouseX = x; mouseY = y;
+  if (dragNode) {
+    const dx = Math.abs(x - (dragNode.x + dragOffX));
+    const dy = Math.abs(y - (dragNode.y + dragOffY));
+    if (dx > 3 || dy > 3) didDrag = true;
+    dragNode.x = x - dragOffX;
+    dragNode.y = y - dragOffY;
+  }
+});
+
+canvas.addEventListener('mouseup', () => { dragNode = null; });
+canvas.addEventListener('mouseleave', () => { dragNode = null; });
+
+canvas.addEventListener('click', e => {
+  if (didDrag) return;
+  const { x, y } = canvasXY(e);
+  const node = mesh.nodeAt(x, y);
+  if (node) ui.handleNodeClick(node);
+});
+
+canvas.addEventListener('dblclick', e => {
+  const { x, y } = canvasXY(e);
+  const node = mesh.nodeAt(x, y);
+  if (node) ui.handleNodeDblClick(node);
+});
+
+// Touch
+canvas.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  const m = new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY });
+  canvas.dispatchEvent(m);
+}, { passive: true });
+canvas.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: t.clientX, clientY: t.clientY }));
+  e.preventDefault();
+}, { passive: false });
+canvas.addEventListener('touchend', e => {
+  canvas.dispatchEvent(new MouseEvent('mouseup'));
+  if (!didDrag && e.changedTouches.length) {
+    const t = e.changedTouches[0];
+    canvas.dispatchEvent(new MouseEvent('click', { clientX: t.clientX, clientY: t.clientY }));
+  }
+});
+
+// ── Simulation: auto-drift other users' states ──
+setInterval(() => {
+  for (const n of mesh.nodes) {
+    if (n.isYou) continue;
+    // Small random state nudge every 4s
+    const basisIdx = randInt(0, 5);
+    n.collapseToward(basisIdx, randFloat(0.02, 0.08));
+  }
+}, 4000);
+
+// ── Animation loop ──
+let lastT = 0;
+function loop(ts) {
+  const dt = Math.min((ts - lastT) / 1000, 0.05);
+  lastT = ts;
+
+  mesh.tick(dt);
+  renderer.draw();
+
+  // Periodically sync chat header (state drift)
+  if (mesh.activeChat && (ts | 0) % 30 === 0) {
+    ui.updateChatHeader();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+
+// Open alice chat after a moment (demo)
+setTimeout(() => {
+  mesh.openChat('alice');
+  ui.refreshPanel();
+  ui.toast('⊗ Entangled with Alice — double-click any ⊗ node to open channel');
+}, 600);
+<\/script>`,
+  ddemo: `<style>
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0
         }
 
-        :root {
-            --bg: #F2F2F7;
-            --surface: #FFFFFF;
-            --surface2: #F7F7FA;
-            --sep: rgba(60, 60, 67, .18);
-            --sep2: rgba(60, 60, 67, .09);
-            --txt: #000;
-            --txt2: rgba(60, 60, 67, .6);
-            --txt3: rgba(60, 60, 67, .36);
-            --blue: #007AFF;
-            --green: #34C759;
-            --red: #FF3B30;
-            --purple: #5856D6;
-            --orange: #FF9500;
-            --mono: 'IBM Plex Mono', monospace;
-            --brand: 'Syne', system-ui;
-            --ui: -apple-system, 'SF Pro Text', system-ui, sans-serif;
-            --sw: 272px
-        }
-
-        html,
         body {
-            height: 100%;
-            overflow: hidden;
-            background: var(--bg);
-            font-family: var(--ui)
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #ddd;
+            padding: 20px
         }
 
-        #app {
-            display: flex;
-            height: 100vh
-        }
-
-        #sidebar {
-            width: var(--sw);
-            flex-shrink: 0;
-            background: var(--surface);
-            border-right: .5px solid var(--sep);
+        .wrap {
+            max-width: 1280px;
+            margin: auto;
             display: flex;
             flex-direction: column;
-            overflow: hidden
+            gap: 16px
         }
 
-        #brand {
-            padding: 13px 14px 10px;
-            border-bottom: .5px solid var(--sep2)
+        .card {
+            background: #1f1f1f;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 16px
         }
 
-        #brand h1 {
-            font-family: var(--brand);
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--txt);
-            letter-spacing: -.2px
-        }
-
-        .did-row {
-            font-family: var(--mono);
-            font-size: 9px;
-            color: var(--txt3);
-            margin-top: 3px;
-            word-break: break-all
-        }
-
-        .st-row {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 6px
-        }
-
-        .sdot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--green)
-        }
-
-        .slab {
-            font-size: 11px;
-            color: var(--txt2)
-        }
-
-        #theta-row {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            padding: 7px 14px;
-            border-bottom: .5px solid var(--sep2);
-            background: var(--surface2)
-        }
-
-        #theta-row label {
-            font-family: var(--mono);
-            font-size: 10px;
-            color: var(--txt3);
-            white-space: nowrap
-        }
-
-        #thr {
-            flex: 1;
-            accent-color: var(--purple)
-        }
-
-        #thv {
-            font-family: var(--mono);
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--purple);
-            min-width: 28px;
-            text-align: right
-        }
-
-        #chlabel {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--txt3);
-            text-transform: uppercase;
-            letter-spacing: .6px;
-            padding: 8px 14px 4px
-        }
-
-        #contacts {
-            overflow-y: auto;
-            flex: 1;
-            padding-bottom: 8px
-        }
-
-        .ci {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 14px;
-            border-bottom: .5px solid var(--sep2);
-            cursor: pointer;
-            transition: background .1s;
-            position: relative;
-            overflow: hidden
-        }
-
-        .ci:hover {
-            background: var(--bg)
-        }
-
-        .ci.active {
-            background: #EAF2FF
-        }
-
-        .ci::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            border-radius: 0 2px 2px 0;
-            transition: background .4s, opacity .4s
-        }
-
-        .ci.conv::before {
-            background: var(--green);
-            opacity: .9
-        }
-
-        .ci.appr::before {
-            background: var(--orange);
-            opacity: .7
-        }
-
-        .ci:not(.conv):not(.appr)::before {
-            background: var(--sep);
-            opacity: .4
-        }
-
-        .av {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .card-title {
             font-size: 13px;
-            font-weight: 700;
-            flex-shrink: 0;
-            color: #fff
-        }
-
-        .cm {
-            flex: 1;
-            min-width: 0
-        }
-
-        .cn {
-            font-size: 13.5px;
             font-weight: 600;
-            color: var(--txt);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis
-        }
-
-        .cp {
-            font-size: 11.5px;
-            color: var(--txt2);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 1px
-        }
-
-        .pb {
-            width: 38px;
-            height: 3px;
-            background: var(--sep2);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 2px
-        }
-
-        .pf {
-            height: 100%;
-            border-radius: 2px;
-            transition: width .6s ease
-        }
-
-        .cr {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 3px;
-            flex-shrink: 0
-        }
-
-        .ct {
-            font-size: 10.5px;
-            color: var(--txt3)
-        }
-
-        .cb {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: var(--mono);
-            letter-spacing: .3px;
-            white-space: nowrap
-        }
-
-        .cb.yes {
-            background: #E8FAF0;
-            color: #1a7a3a
-        }
-
-        .cb.near {
-            background: #FFF3E0;
-            color: #8a4a00
-        }
-
-        .cb.no {
-            background: var(--bg);
-            color: var(--txt3);
-            border: .5px solid var(--sep)
-        }
-
-        #main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: var(--bg)
-        }
-
-        #chat-header {
-            background: var(--surface);
-            border-bottom: .5px solid var(--sep);
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            gap: 10px;
-            flex-shrink: 0;
-            min-height: 54px
-        }
-
-        .hav {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0
-        }
-
-        .hi {
-            flex: 1;
-            min-width: 0
-        }
-
-        .hn {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--txt)
-        }
-
-        .hd {
-            font-size: 10px;
-            color: var(--txt3);
-            font-family: var(--mono)
-        }
-
-        .cpill {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 9px;
-            border-radius: 7px;
-            border: .5px solid var(--sep);
-            background: var(--bg);
-            font-size: 10px;
-            font-family: var(--mono);
-            cursor: pointer;
-            flex-shrink: 0
-        }
-
-        .cpill .cpdot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0
-        }
-
-        #logbtn {
-            background: none;
-            border: .5px solid var(--sep);
-            border-radius: 7px;
-            padding: 4px 9px;
-            font-size: 10px;
-            font-family: var(--mono);
-            color: var(--txt3);
-            cursor: pointer;
-            flex-shrink: 0;
-            white-space: nowrap
-        }
-
-        #sigbar {
-            background: var(--surface2);
-            border-bottom: .5px solid var(--sep2);
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            gap: 12px;
-            height: 30px;
-            flex-shrink: 0;
-            font-size: 9px
-        }
-
-        .sg {
-            display: flex;
-            align-items: center;
-            gap: 5px
-        }
-
-        .sgl {
-            font-weight: 600;
-            color: var(--txt3);
-            font-family: var(--mono);
+            color: #aaa;
             text-transform: uppercase;
-            letter-spacing: .3px;
-            min-width: 42px
+            letter-spacing: 0.5px;
+            margin-bottom: 10px
         }
 
-        .sgt {
-            width: 44px;
-            height: 3px;
-            background: var(--sep2);
-            border-radius: 2px;
-            overflow: hidden
-        }
-
-        .sgf {
-            height: 100%;
-            border-radius: 2px;
-            transition: width .5s ease
-        }
-
-        .sge .sgf {
-            background: var(--orange)
-        }
-
-        .sgd .sgf {
-            background: var(--purple)
-        }
-
-        .sgp .sgf {
-            background: var(--blue)
-        }
-
-        .sgv {
-            font-family: var(--mono);
-            min-width: 26px;
-            text-align: right
-        }
-
-        #cconv {
-            margin-left: auto;
+        .tabs {
             display: flex;
-            align-items: center;
             gap: 4px;
-            font-family: var(--mono);
-            font-size: 9px;
-            flex-wrap: nowrap;
-            white-space: nowrap
+            border-bottom: 1px solid #333;
+            margin-bottom: 16px
         }
 
-        #mwrap {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 16px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px
+        .tab {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            color: #888;
+            border: 1px solid transparent;
+            border-bottom: none;
+            transition: all .2s
         }
 
-        #mwrap::-webkit-scrollbar {
-            width: 4px
+        .tab.active {
+            color: #fff;
+            background: #1f1f1f;
+            border-color: #555
         }
 
-        #mwrap::-webkit-scrollbar-thumb {
-            background: var(--sep);
-            border-radius: 2px
-        }
-
-        .mr {
-            display: flex;
-            align-items: flex-end;
-            gap: 7px;
-            margin-bottom: 6px
-        }
-
-        .mr.sent {
-            flex-direction: row-reverse
-        }
-
-        .mav {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            font-weight: 700;
-            color: #fff
-        }
-
-        .mr.sent .mav {
+        .tab-panel {
             display: none
         }
 
-        .bb {
-            max-width: 68%;
-            padding: 9px 14px;
-            border-radius: 18px;
-            font-size: 15px;
-            line-height: 1.45;
-            word-break: break-word
+        .tab-panel.active {
+            display: block
         }
 
-        .bb.sent {
-            background: var(--blue);
-            color: #fff;
-            border-bottom-right-radius: 5px
-        }
-
-        .bb.recv {
-            background: var(--surface);
-            color: var(--txt);
-            border-bottom-left-radius: 5px;
-            box-shadow: 0 0 0 .5px var(--sep2)
-        }
-
-        .bb.fl {
-            animation: bIn .22s ease
-        }
-
-        @keyframes bIn {
-            from {
-                opacity: 0;
-                transform: scale(.94) translateY(6px)
-            }
-
-            to {
-                opacity: 1;
-                transform: none
-            }
-        }
-
-        .mm {
-            font-size: 10.5px;
-            color: var(--txt3);
-            margin: 2px 6px 8px;
+        /* Controls */
+        .controls {
             display: flex;
-            align-items: center;
-            gap: 4px
-        }
-
-        .mm.sent {
-            flex-direction: row-reverse
-        }
-
-        .chk {
-            color: var(--blue)
-        }
-
-        .tdiv {
-            text-align: center;
-            margin: 14px 0 10px;
-            font-size: 11px;
-            color: var(--txt3);
-            font-weight: 500
-        }
-
-        .rev {
-            text-align: center;
-            margin: 8px auto;
-            font-family: var(--mono);
-            font-size: 9.5px;
-            color: var(--purple);
-            background: #EEEEFD;
-            padding: 4px 12px;
-            border-radius: 6px;
-            align-self: center;
-            animation: bIn .2s ease
-        }
-
-        .tr2 {
-            display: flex;
-            align-items: flex-end;
-            gap: 7px;
-            margin-top: 4px
-        }
-
-        .tb {
-            background: var(--surface);
-            box-shadow: 0 0 0 .5px var(--sep2);
-            border-radius: 18px;
-            border-bottom-left-radius: 5px;
-            padding: 9px 13px;
-            display: flex;
-            gap: 4px;
-            align-items: center
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--txt3);
-            animation: bn 1.2s infinite
-        }
-
-        .dot:nth-child(2) {
-            animation-delay: .2s
-        }
-
-        .dot:nth-child(3) {
-            animation-delay: .4s
-        }
-
-        @keyframes bn {
-
-            0%,
-            80%,
-            100% {
-                transform: translateY(0);
-                opacity: .5
-            }
-
-            40% {
-                transform: translateY(-5px);
-                opacity: 1
-            }
-        }
-
-        #ibar {
-            min-height: 58px;
-            background: var(--surface);
-            border-top: .5px solid var(--sep);
-            display: flex;
-            align-items: flex-end;
-            padding: 9px 12px;
+            flex-wrap: wrap;
             gap: 8px;
-            flex-shrink: 0
-        }
-
-        #minp {
-            flex: 1;
-            border: .5px solid var(--sep);
-            border-radius: 20px;
-            padding: 9px 14px;
-            font-size: 15px;
-            font-family: var(--ui);
-            background: var(--bg);
-            color: var(--txt);
-            resize: none;
-            overflow: hidden;
-            outline: none;
-            line-height: 1.45;
-            max-height: 120px;
-            overflow-y: auto;
-            transition: border-color .15s
-        }
-
-        #minp:focus {
-            border-color: var(--blue)
-        }
-
-        #minp::placeholder {
-            color: var(--txt3)
-        }
-
-        #sbtn {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: var(--blue);
-            border: none;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: transform .1s, opacity .15s;
-            opacity: .4
+            margin-bottom: 12px
         }
 
-        #sbtn.active {
-            opacity: 1
-        }
-
-        #sbtn:active {
-            transform: scale(.92)
-        }
-
-        #sbtn svg {
-            fill: white;
-            width: 16px;
-            height: 16px
-        }
-
-        #empty {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            color: var(--txt3)
-        }
-
-        #empty .ic {
-            font-size: 42px
-        }
-
-        #lpanel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 320px;
-            background: var(--surface);
-            border-left: .5px solid var(--sep);
-            display: flex;
-            flex-direction: column;
-            z-index: 200;
-            transform: translateX(100%);
-            transition: transform .25s cubic-bezier(0.32, 0.72, 0, 1)
-        }
-
-        #lpanel.open {
-            transform: translateX(0)
-        }
-
-        #lph {
-            padding: 11px 14px;
-            border-bottom: .5px solid var(--sep);
-            display: flex;
-            align-items: center;
-            justify-content: space-between
-        }
-
-        #lph h3 {
-            font-family: var(--brand);
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--txt)
-        }
-
-        .ltab {
-            background: none;
-            border: .5px solid var(--sep);
-            border-radius: 6px;
-            padding: 3px 9px;
-            font-size: 10px;
-            font-family: var(--mono);
-            color: var(--txt3);
+        select,
+        button,
+        input[type=number] {
+            font-size: 13px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: #ddd;
             cursor: pointer
         }
 
-        .ltab.active {
-            background: var(--blue);
-            color: #fff;
-            border-color: var(--blue)
+        button.primary {
+            background: #0066ff;
+            color: white;
+            border: none
         }
 
-        #clbtn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--blue);
-            font-size: 15px;
-            padding: 0 4px
+        button.primary:hover {
+            background: #0055dd
         }
 
-        #lbody {
-            flex: 1;
+        button.warn {
+            background: #cc4400;
+            color: white;
+            border: none
+        }
+
+        button.warn:hover {
+            background: #aa3300
+        }
+
+        /* Event list */
+        .event-list {
+            max-height: 260px;
             overflow-y: auto;
-            padding: 10px;
             display: flex;
             flex-direction: column;
             gap: 6px
         }
 
-        #lbody::-webkit-scrollbar {
-            width: 3px
-        }
-
-        #lbody::-webkit-scrollbar-thumb {
-            background: var(--sep);
-            border-radius: 2px
-        }
-
-        .le {
-            background: var(--bg);
-            border-radius: 7px;
-            padding: 8px 10px;
-            font-family: var(--mono);
-            font-size: 9.5px;
-            color: var(--txt2);
-            line-height: 1.65;
-            border-left: 3px solid var(--blue);
-            animation: bIn .18s ease
-        }
-
-        .le.lconv {
-            border-left-color: var(--green)
-        }
-
-        .le .let {
-            font-weight: 600;
-            color: var(--txt);
-            font-size: 10.5px
-        }
-
-        .le .lec {
-            color: var(--purple)
-        }
-
-        .le .leca {
-            color: var(--orange)
-        }
-
-        .cpvm {
-            background: var(--bg);
-            border-radius: 8px;
-            padding: 10px 12px;
-            border: .5px solid var(--sep2);
-            margin-bottom: 8px
-        }
-
-        .cpvn {
-            font-size: 11.5px;
-            font-weight: 600;
-            margin-bottom: 4px
-        }
-
-        .cpr {
+        .event-item {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3px;
-            font-size: 9.5px
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            cursor: pointer;
+            transition: border .15s
         }
 
-        .cprl {
-            font-family: var(--mono);
-            color: var(--txt3)
+        .event-item:hover {
+            border-color: #666
         }
 
-        .cprv {
-            font-family: var(--mono);
+        .event-item.selected {
+            border-color: #0066ff
+        }
+
+        .ev-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0
+        }
+
+        .ev-type {
+            font-weight: 600;
+            font-size: 13px
+        }
+
+        .vbadge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 999px;
             font-weight: 500
         }
 
-        .cpt {
-            width: 100%;
-            height: 3px;
-            background: var(--sep2);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 1px
+        .v-axiomatic {
+            background: #1a3a1a;
+            color: #6f6
         }
 
-        .cpf {
-            height: 100%;
-            border-radius: 2px;
-            transition: width .5s ease
+        .v-confirmed {
+            background: #1a2a4a;
+            color: #6bf
         }
 
-        .cpcond {
-            margin-top: 10px;
-            padding: 9px 11px;
-            border-radius: 7px;
-            font-size: 9.5px;
-            line-height: 1.55
+        .v-claimed {
+            background: #3a2a1a;
+            color: #fb6
         }
 
-        .cpcond.yes {
-            background: #E8FAF0;
-            border: .5px solid rgba(52, 199, 89, .3)
+        .v-disputed {
+            background: #3a1a1a;
+            color: #f66
         }
 
-        .cpcond.no {
-            background: var(--bg);
-            border: .5px solid var(--sep2)
+        /* State */
+        .state-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px
         }
 
-        .cchips {
+        .sc {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #444
+        }
+
+        .sc-label {
+            font-size: 11px;
+            color: #888
+        }
+
+        .sc-val {
+            font-size: 22px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        /* DAG */
+        .dag-wrap {
+            overflow-x: auto;
+            background: #111;
+            border-radius: 8px;
+            padding: 10px
+        }
+
+        canvas {
+            background: #1a1a1a;
+            border-radius: 8px
+        }
+
+        /* P2P */
+        .nodes-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 1fr;
+            gap: 16px
+        }
+
+        .node-card {
+            background: #1f1f1f;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 16px
+        }
+
+        .node-card.synced {
+            border-color: #0a0
+        }
+
+        .sync-col {
             display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 6px
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 28px;
+            color: #666
         }
 
-        .cchip {
-            font-family: var(--mono);
-            font-size: 8.5px;
-            padding: 1px 6px;
+        .sync-btn {
+            padding: 8px 20px;
+            font-size: 14px
+        }
+
+        /* DSL */
+        .dsl-area {
+            width: 100%;
+            min-height: 180px;
+            font-family: ui-monospace, monospace;
+            font-size: 13px;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #ddd;
+            resize: vertical
+        }
+
+        .dsl-output {
+            font-family: ui-monospace, monospace;
+            font-size: 12px;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            min-height: 80px;
+            white-space: pre-wrap;
+            color: #aaa
+        }
+
+        .dsl-token {
+            padding: 1px 5px;
             border-radius: 4px;
-            background: #EEEEFD;
-            color: var(--purple)
+            margin: 1px
         }
 
-        .cchip.ov {
-            background: #E8FAF0;
-            color: #1a7a3a
+        .tok-kw {
+            color: #6bf
+        }
+
+        .tok-id {
+            color: #fb6
+        }
+
+        .tok-str {
+            color: #6f6
+        }
+
+        .tok-num {
+            color: #fb6
+        }
+
+        .tok-err {
+            color: #f66;
+            background: #3a1a1a
         }
     </style>
-</head>
+<div class="wrap">
 
-<body>
-    <div id="app">
-        <aside id="sidebar">
-            <div id="brand">
-                <h1>Sovereign Net OS</h1>
-                <div class="did-row" id="myDIDel">generating…</div>
-                <div class="st-row">
-                    <div class="sdot"></div><span class="slab">Genesis/messaging · CGK v4</span>
-                </div>
-            </div>
-            <div id="theta-row">
-                <label>θ (theta)</label>
-                <input type="range" id="thr" min="0.1" max="0.9" step="0.05" value="0.5">
-                <span id="thv">0.50</span>
-            </div>
-            <div id="chlabel">Channels</div>
-            <div id="contacts"></div>
-        </aside>
-        <main id="main">
-            <div id="empty">
-                <div class="ic">💬</div>
-                <p>Select a channel to begin</p>
-            </div>
-            <div id="carea" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-                <div id="chat-header">
-                    <div class="hav" id="hav"></div>
-                    <div class="hi">
-                        <div class="hn" id="hname"></div>
-                        <div class="hd" id="hdid"></div>
-                    </div>
-                    <div class="cpill" id="cpill">
-                        <div class="cpdot" id="cpdot"></div><span id="cptext">Checking…</span>
-                    </div>
-                    <button id="logbtn">Event Log ↗</button>
-                </div>
-                <div id="sigbar">
-                    <div class="sg sge"><span class="sgl">energy</span>
-                        <div class="sgt">
-                            <div class="sgf" id="sfe" style="width:0%"></div>
-                        </div><span class="sgv" id="sve">0.00</span>
-                    </div>
-                    <div class="vs" style="width:1px;height:14px;background:var(--sep2);margin:0 4px;"></div>
-                    <div class="sg sgd"><span class="sgl">decay</span>
-                        <div class="sgt">
-                            <div class="sgf" id="sfd" style="width:0%"></div>
-                        </div><span class="sgv" id="svd">0.00</span>
-                    </div>
-                    <div class="vs" style="width:1px;height:14px;background:var(--sep2);margin:0 4px;"></div>
-                    <div class="sg sgp"><span class="sgl">priority</span>
-                        <div class="sgt">
-                            <div class="sgf" id="sfp" style="width:0%"></div>
-                        </div><span class="sgv" id="svp">0.00</span>
-                    </div>
-                    <div id="cconv"><span class="cop">pᴬ</span><span class="cv" id="cpa">–</span><span class="cop">></span><span class="cth" id="cth1">θ</span><span class="cop">&amp;</span><span class="cop">pᴮ</span><span class="cv" id="cpb">–</span><span class="cop">></span><span class="cth" id="cth2">θ</span><span class="cop">&amp; corr</span><span class="cv" id="ccorr">–</span><span class="vs" style="margin:0 3px;width:1px;height:12px;background:var(--sep2);"></span><span class="cv" id="cres">–</span></div>
-                </div>
-                <div id="mwrap"></div>
-                <div id="ibar">
-                    <textarea id="minp" rows="1" placeholder="Type a message..." onkeydown="hk(event)" oninput="hi(this)"></textarea>
-                    <button id="sbtn" onclick="send()"><svg viewBox="0 0 24 24">
-                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                        </svg></button>
-                </div>
-            </div>
-        </main>
-    </div>
-    <div id="lpanel">
-        <div id="lph">
-            <h3>DDC Inspector</h3>
-            <div><button class="ltab active" onclick="sw('log')">Event Log</button><button class="ltab" onclick="sw('conv')">Convergence</button></div>
-            <button id="clbtn" onclick="closeLog()">✕</button>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(0)">Events + DAG + Clocks</div>
+            <div class="tab" onclick="switchTab(1)">P2P Nodes + Gossip</div>
+            <div class="tab" onclick="switchTab(2)">Event DSL</div>
         </div>
-        <div id="lbody"></div>
+
+        <!-- TAB 0: EVENTS + DAG -->
+        <div class="tab-panel active" id="tab-0">
+            <div class="controls">
+                <select id="ev-type">
+                    <option value="TRANSFER">TRANSFER</option>
+                    <option value="STAKE">STAKE</option>
+                    <option value="CONFIRM">CONFIRM</option>
+                    <option value="DISPUTE">DISPUTE</option>
+                    <option value="VOTE">VOTE</option>
+                </select>
+                <select id="ev-author">
+                    <option>alice</option>
+                    <option>bob</option>
+                    <option>carol</option>
+                </select>
+                <input type="number" id="ev-amount" value="10" style="width:70px">
+                <button class="primary" onclick="emitEvent()">Emit Event</button>
+                <button class="warn" onclick="emitConcurrent()">⑂ Concurrent Fork</button>
+                <button onclick="mergeForks()">Merge Forks</button>
+                <button onclick="resetAll()">Reset</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                    <div class="card-title">Event Log (topological order)</div>
+                    <div class="event-list" id="event-list"></div>
+                </div>
+                <div>
+                    <div class="card-title">Global State (deterministic replay)</div>
+                    <div class="state-grid" id="state-grid"></div>
+                    <div style="margin-top:12px">
+                        <div class="card-title">Replay Horizon</div>
+                        <input type="range" id="horizon" min="0" value="100" style="width:100%" oninput="renderAll()">
+                        <div style="text-align:center;font-size:12px;color:#888" id="horizon-label">All events</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-title" style="margin-top:16px">Causal DAG with Vector Clocks</div>
+            <div class="dag-wrap"><canvas id="dag-canvas" height="180" style="width:100%"></canvas></div>
+            <div id="fork-notice" style="display:none;margin-top:8px;padding:10px;background:#3a2a1a;border:1px solid #fb6;color:#fb6;border-radius:8px">Concurrent forks detected — state is temporarily non-deterministic until merged or gossiped.</div>
+        </div>
+
+        <!-- TAB 1: P2P -->
+        <div class="tab-panel" id="tab-1">
+            <div class="nodes-row">
+                <div class="node-card" id="nodeA">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                        <div style="width:12px;height:12px;background:#0a0;border-radius:50%"></div>
+                        <strong>Node A (alice)</strong>
+                        <span id="hashA" style="font-family:monospace;font-size:12px;color:#666"></span>
+                    </div>
+                    <div class="card-title">Local Events</div>
+                    <div class="event-list" id="listA" style="max-height:200px"></div>
+                    <div class="card-title" style="margin-top:12px">Local State</div>
+                    <div id="stateA" style="font-family:monospace;font-size:13px"></div>
+                </div>
+
+                <div class="sync-col">
+                    <div>⇄</div>
+                    <button class="sync-btn primary" onclick="gossipSync()">Full Gossip Sync</button>
+                    <button class="sync-btn" onclick="partialGossip()" style="font-size:13px">Partial Gossip</button>
+                    <div id="convergence" style="margin-top:12px;text-align:center;font-size:14px"></div>
+                </div>
+
+                <div class="node-card" id="nodeB">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                        <div style="width:12px;height:12px;background:#0a0;border-radius:50%"></div>
+                        <strong>Node B (bob)</strong>
+                        <span id="hashB" style="font-family:monospace;font-size:12px;color:#666"></span>
+                    </div>
+                    <div class="card-title">Local Events</div>
+                    <div class="event-list" id="listB" style="max-height:200px"></div>
+                    <div class="card-title" style="margin-top:12px">Local State</div>
+                    <div id="stateB" style="font-family:monospace;font-size:13px"></div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px">
+                <div class="card-title">Gossip Log</div>
+                <div id="gossip-log" style="font-family:monospace;font-size:12px;max-height:140px;overflow-y:auto;color:#888"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: DSL -->
+        <div class="tab-panel" id="tab-2">
+            <div class="card-title">Event Schema</div>
+            <div id="schema" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+            <textarea id="dsl-input" class="dsl-area" spellcheck="false">event TRANSFER {
+  from: identity = "alice"
+  to: identity = "bob"
+  amount: uint = 25
+  causes: [] = []
+}
+
+event STAKE {
+  from: identity = "alice"
+  amount: uint = 40
+  causes: [] = []
+}</textarea>
+
+            <div style="margin:12px 0;display:flex;gap:8px">
+                <button class="primary" onclick="compileDSL()">Compile & Emit</button>
+                <button onclick="loadExample('fork')">Load Concurrent Fork</button>
+                <button onclick="loadExample('vote')">Load Governance Vote</button>
+            </div>
+
+            <div class="card-title">Parsed + Validation</div>
+            <div id="dsl-output" class="dsl-output"></div>
+
+            <div class="card-title" style="margin-top:16px">Compiled Events</div>
+            <div id="dsl-compiled" class="dsl-output"></div>
+        </div>
+
     </div>
+
     <script>
-        const myDID = 'did:sos:' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('');
-        document.getElementById('myDIDel').textContent = myDID;
-        const bc = new BroadcastChannel('sov-mesh');
-        const myVM = {
-            id: myDID,
-            log: [],
-            corrSpace: new Set()
+        // ==================== CORE MODEL ====================
+
+        const COLORS = {
+            TRANSFER: '#0a0',
+            STAKE: '#fa0',
+            CONFIRM: '#06f',
+            DISPUTE: '#f33',
+            VOTE: '#c0f',
+            MERGE: '#a0a',
+            GENESIS: '#888'
         };
-        const vms = {};
-        const glog = [];
-        const state = {
-            channels: {}
+        const VC = {
+            AXIOMATIC: 'v-axiomatic',
+            CONFIRMED: 'v-confirmed',
+            CLAIMED: 'v-claimed',
+            DISPUTED: 'v-disputed'
         };
-        let THETA = 0.5,
-            ACH = null,
-            ridx = {},
-            ltab = 'log';
-        const PEERS = [{
-            id: 'alice',
-            name: 'Alice Chen',
-            did: 'did:sos:a1b2c3d4e5f6a7b8',
-            color: '#5856D6',
-            ini: 'AC',
-            reps: ["The convergence condition is elegant.", "My priority just crossed θ.", "corrSpace overlap confirmed."]
-        }, {
-            id: 'bob',
-            name: 'Bob Martinez',
-            did: 'did:sos:c3d4e5f6a7b8c9d0',
-            color: '#34C759',
-            ini: 'BM',
-            reps: ["Hey! Mesh looks healthy.", "My priority is at 0.52.", "corrSpace overlap detected."]
-        }, {
-            id: 'net',
-            name: 'DDC Network',
-            did: 'did:sos:broadcast',
-            color: '#FF9500',
-            ini: 'DN',
-            reps: ["SYSTEM · 3 peers online", "CONVERGENCE · ROUTING INITIATED"]
-        }];
 
-        function h8() {
-            return Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')
+        let nodes = {
+            A: [],
+            B: []
+        };
+        let globalEvents = [];
+        let vectorClock = {
+            alice: 0,
+            bob: 0,
+            carol: 0,
+            system: 0
+        }; // global for demo
+
+        function hash(str) {
+            let h = 0;
+            for (let i = 0; i < str.length; i++) h = (h << 5) - h + str.charCodeAt(i);
+            return Math.abs(h).toString(16).padStart(8, '0');
         }
 
-        function uid() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                const r = Math.random() * 16 | 0;
-                return (c === 'x' ? r : (r & 3 | 8)).toString(16)
-            })
-        }
-        const PRIMARY = new Set(['MSG_SENT', 'MSG_RECV']);
-
-        function energy(vm) {
-            const p = vm.log.filter(e => PRIMARY.has(e.type));
-            return p.length / Math.max(1, vm.log.length)
-        }
-
-        function decay(vm) {
-            const p = vm.log.filter(e => PRIMARY.has(e.type));
-            if (!p.length) return 1;
-            const li = vm.log.lastIndexOf(p[p.length - 1]);
-            return 1 - ((vm.log.length - 1 - li) / Math.max(1, vm.log.length))
-        }
-
-        function priority(vm) {
-            return energy(vm) * 0.5 + (1 - decay(vm)) * 0.5
-        }
-
-        function conv(vmA, vmB) {
-            const pA = priority(vmA),
-                pB = priority(vmB),
-                ov = [...vmA.corrSpace].some(id => vmB.corrSpace.has(id));
+        function createEvent(type, payload, author, causes = []) {
+            vectorClock[author] = (vectorClock[author] || 0) + 1;
+            const vc = {
+                ...vectorClock
+            };
+            const id = hash(type + JSON.stringify(payload) + author + causes.join('') + Date.now());
             return {
-                pA,
-                pB,
-                ov,
-                ok: pA > THETA && pB > THETA && ov
+                id,
+                type,
+                payload,
+                author,
+                causes,
+                ts: Date.now(),
+                vectorClock: vc,
+                validity: 'CLAIMED'
+            };
+        }
+
+        function compareVectorClocks(vc1, vc2) {
+            let before = true,
+                after = true,
+                concurrent = false;
+            for (let p in vc1) {
+                if (vc1[p] < vc2[p]) before = false;
+                if (vc1[p] > vc2[p]) after = false;
             }
+            if (!before && !after) concurrent = true;
+            return {
+                before,
+                after,
+                concurrent
+            };
         }
 
-        function dispatch(vm, ev) {
-            const e = {
-                ...ev,
-                id: ev.id || uid(),
-                ts: ev.ts || Date.now(),
-                correlationId: ev.correlationId || uid(),
-                causationId: ev.causationId || null,
-                from: ev.from || vm.id,
-                vmId: vm.id
-            };
-            vm.log.push(e);
-            glog.push(e);
-            if (e.correlationId) vm.corrSpace.add(e.correlationId);
-            applyDelta(reduce(e));
-            bc.postMessage(e);
-            return e
+        function isCausallyBefore(ev1, ev2) {
+            return compareVectorClocks(ev1.vectorClock, ev2.vectorClock).before;
         }
 
-        function reduce(e) {
-            if (e.type === 'MSG_SENT' || e.type === 'MSG_RECV') return {
-                op: 'msg',
-                ch: e.channelId,
-                m: {
-                    id: e.id,
-                    ts: e.ts,
-                    type: e.type,
-                    text: e.payload.text,
-                    correlationId: e.correlationId
-                }
-            };
-            if (e.type === 'CHANNEL_OPEN') return {
-                op: 'open',
-                ch: e.channelId,
-                meta: e.payload
-            };
-            if (e.type === 'PEER_CONVERGED') return {
-                op: 'setconv',
-                ch: e.channelId
-            };
-            return null
-        }
+        function topologicalSort(evs) {
+            const sorted = [];
+            const visited = new Set();
+            const temp = new Set();
 
-        function applyDelta(d) {
-            if (!d) return;
-            if (d.op === 'open') {
-                if (!state.channels[d.ch]) state.channels[d.ch] = {
-                    messages: [],
-                    typing: false,
-                    converged: false,
-                    ...d.meta
-                }
-            } else if (d.op === 'msg') {
-                state.channels[d.ch]?.messages.push(d.m)
-            } else if (d.op === 'setconv') {
-                if (state.channels[d.ch]) state.channels[d.ch].converged = true
+            function visit(id) {
+                if (temp.has(id)) return; // cycle? shouldn't happen
+                if (visited.has(id)) return;
+                temp.add(id);
+                const ev = evs.find(e => e.id === id);
+                if (ev) ev.causes.forEach(visit);
+                temp.delete(id);
+                visited.add(id);
+                sorted.push(ev);
             }
-        }
-        bc.onmessage = e => {
-            if (e.data.from === myDID) return;
-            const ev = e.data;
-            if (ev.type === 'MSG_SENT' || ev.type === 'MSG_RECV' || ev.type === 'PEER_CONVERGED') applyDelta(reduce(ev));
-            renderMsgs();
-            renderContacts();
-            updSig()
+
+            evs.forEach(e => visit(e.id));
+            return sorted.reverse();
         }
 
-        function init() {
-            PEERS.forEach(p => {
-                vms[p.id] = {
-                    id: p.did,
-                    log: [],
-                    corrSpace: new Set()
-                };
-                dispatch(myVM, {
-                    type: 'CHANNEL_OPEN',
-                    channelId: p.id,
-                    payload: {
-                        name: p.name,
-                        did: p.did,
-                        color: p.color,
-                        ini: p.ini
+        function reduceState(evs) {
+            const sorted = topologicalSort(evs);
+            let state = {
+                balances: {
+                    alice: 100,
+                    bob: 100,
+                    carol: 100
+                },
+                stakes: {
+                    alice: 0,
+                    bob: 0,
+                    carol: 0
+                },
+                txns: 0
+            };
+
+            for (const ev of sorted) {
+                if (ev.validity === 'DISPUTED') continue;
+                if (ev.type === 'TRANSFER') {
+                    const {
+                        from,
+                        to,
+                        amount
+                    } = ev.payload;
+                    if ((state.balances[from] || 0) >= amount) {
+                        state.balances[from] -= amount;
+                        state.balances[to] = (state.balances[to] || 0) + amount;
+                        state.txns++;
                     }
-                })
-            });
-            const base = Date.now() - 180000;
-            [{
-                ch: 'alice',
-                sent: false,
-                t: "Hey! Your node just appeared."
-            }, {
-                ch: 'alice',
-                sent: true,
-                t: "CGK v4 live."
-            }, {
-                ch: 'bob',
-                sent: false,
-                t: "Welcome to the network 👋"
-            }].forEach((s, i) => {
-                const cid = uid();
-                const ev = {
-                    type: s.sent ? 'MSG_SENT' : 'MSG_RECV',
-                    channelId: s.ch,
-                    ts: base + i * 18000,
-                    from: s.sent ? myDID : vms[s.ch].id,
-                    correlationId: cid,
-                    payload: {
-                        text: s.t
+                }
+                if (ev.type === 'STAKE') {
+                    const {
+                        from,
+                        amount
+                    } = ev.payload;
+                    if ((state.balances[from] || 0) >= amount) {
+                        state.balances[from] -= amount;
+                        state.stakes[from] = (state.stakes[from] || 0) + amount;
                     }
-                };
-                dispatch(myVM, ev);
-                dispatch(vms[s.ch], ev)
-            })
-        }
-
-        function renderContacts() {
-            const el = document.getElementById('contacts');
-            el.innerHTML = '';
-            PEERS.forEach(p => {
-                const ch = state.channels[p.id];
-                if (!ch) return;
-                const pv = vms[p.id];
-                const c = conv(myVM, pv);
-                const last = ch.messages[ch.messages.length - 1];
-                let cls = '',
-                    bc = 'no',
-                    bt = 'IDLE';
-                if (c.ok) {
-                    cls = 'conv';
-                    bc = 'yes';
-                    bt = 'CONVERGED'
-                } else if (c.pA > THETA * 0.7 || c.pB > THETA * 0.7) {
-                    cls = 'appr';
-                    bc = 'near';
-                    bt = 'APPROACHING'
                 }
-                const pf = Math.round(c.pA * 100);
-                const d = document.createElement('div');
-                d.className = `ci ${cls}${ACH===p.id?' active':''}`;
-                d.onclick = () => openCh(p.id);
-                d.innerHTML = `<div class="av" style="background:${p.color}">${p.ini}</div><div class="cm"><div class="cn">${p.name}</div><div class="cp">${last?last.text:''}</div><div class="pb"><div class="pf" style="width:${pf}%;background:${c.pA>THETA?'var(--blue)':'var(--orange)'}"></div></div></div><div class="cr"><span class="ct">${last?new Date(last.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</span><span class="cb ${bc}">${bt}</span></div>`;
-                el.appendChild(d)
-            })
-        }
-
-        function openCh(id) {
-            ACH = id;
-            const p = PEERS.find(x => x.id === id);
-            if (!p) return;
-            document.getElementById('empty').style.display = 'none';
-            document.getElementById('carea').style.display = 'flex';
-            document.getElementById('hav').textContent = p.ini;
-            document.getElementById('hav').style.background = p.color;
-            document.getElementById('hname').textContent = p.name;
-            document.getElementById('hdid').textContent = p.did;
-            renderMsgs();
-            renderContacts();
-            updSig()
-        }
-
-        function renderMsgs() {
-            if (!ACH) return;
-            const wrap = document.getElementById('mwrap');
-            const ch = state.channels[ACH];
-            if (!ch) return;
-            const p = PEERS.find(x => x.id === ACH);
-            wrap.innerHTML = '';
-            ch.messages.forEach(m => {
-                const sent = m.type === 'MSG_SENT';
-                const r = document.createElement('div');
-                r.className = `mr ${sent?'sent':'recv'}`;
-                r.innerHTML = `<div class="mav" style="background:${p.color}">${p.ini}</div><div class="bb ${sent?'sent':'recv'}">${m.text}</div>`;
-                wrap.appendChild(r)
-            });
-            scrollB()
-        }
-
-        function send() {
-            const inp = document.getElementById('minp');
-            const text = inp.value.trim();
-            if (!text || !ACH) return;
-            inp.value = '';
-            const cid = uid();
-            const pv = vms[ACH];
-            dispatch(myVM, {
-                type: 'MSG_SENT',
-                channelId: ACH,
-                payload: {
-                    text
+                // Validity updates (simplified aBFT-style)
+                if (ev.type === 'CONFIRM') {
+                    const target = evs.find(e => e.id === ev.payload.target);
+                    if (target) target.validity = 'CONFIRMED';
                 }
-            });
-            dispatch(pv, {
-                type: 'MSG_SENT',
-                channelId: ACH,
-                payload: {
-                    text
+                if (ev.type === 'DISPUTE') {
+                    const target = evs.find(e => e.id === ev.payload.target);
+                    if (target) target.validity = 'DISPUTED';
                 }
-            });
-            renderMsgs();
-            renderContacts();
-            updSig();
-            schedReply(cid)
+            }
+            return state;
         }
 
-        function schedReply(cid) {
-            const chId = ACH;
-            const peer = PEERS.find(p => p.id === chId);
-            const pv = vms[chId];
-            setTimeout(() => {
-                const text = peer.reps[ridx[peer.id] % peer.reps.length];
-                ridx[peer.id]++;
-                dispatch(pv, {
-                    type: 'MSG_RECV',
-                    channelId: chId,
-                    payload: {
-                        text
-                    }
+        // ==================== RENDERING ====================
+
+        function renderEventList(containerId, evs) {
+            const el = document.getElementById(containerId);
+            el.innerHTML = evs.slice().reverse().map(ev => \`
+    <div class="event-item" onclick="selectEvent('\${ev.id}')">
+      <div class="ev-dot" style="background:\${COLORS[ev.type]||'#666'}"></div>
+      <div>
+        <div><span class="ev-type">\${ev.type}</span> 
+             <span class="vbadge \${VC[ev.validity]||''}">\${ev.validity}</span></div>
+        <div style="font-size:12px;color:#aaa">\${ev.author} • \${ev.id.slice(0,6)}</div>
+        <div style="font-size:11px;color:#666">\${JSON.stringify(ev.payload).slice(0,60)}</div>
+      </div>
+    </div>
+  \`).join('');
+        }
+
+        function renderState(containerId, state) {
+            const html = Object.keys(state.balances).map(k => \`
+    <div class="sc">
+      <div class="sc-label">\${k}</div>
+      <div class="sc-val">\${state.balances[k]}</div>
+      <div style="font-size:11px;color:#666">staked \${state.stakes[k]}</div>
+    </div>
+  \`).join('') + \`<div class="sc"><div class="sc-label">transactions</div><div class="sc-val">\${state.txns}</div></div>\`;
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        function renderDAG() {
+            const canvas = document.getElementById('dag-canvas');
+            const w = canvas.offsetWidth;
+            canvas.width = w * 2;
+            canvas.height = 360;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
+            ctx.clearRect(0, 0, w, 180);
+
+            const evs = globalEvents;
+            if (!evs.length) return;
+
+            // Simple level assignment based on max vector clock sum
+            const levels = {};
+            evs.forEach((ev, i) => {
+                const sum = Object.values(ev.vectorClock).reduce((a, b) => a + b, 0);
+                levels[ev.id] = Math.floor(sum / 2);
+            });
+
+            const maxLevel = Math.max(...Object.values(levels));
+            const xStep = (w - 80) / (maxLevel || 1);
+            const pos = {};
+
+            const groups = {};
+            evs.forEach(ev => {
+                const l = levels[ev.id];
+                if (!groups[l]) groups[l] = [];
+                groups[l].push(ev);
+            });
+
+            Object.keys(groups).forEach(l => {
+                const grp = groups[l];
+                const yStep = 140 / (grp.length + 1);
+                grp.forEach((ev, i) => {
+                    pos[ev.id] = {
+                        x: 40 + Number(l) * xStep,
+                        y: 30 + (i + 1) * yStep
+                    };
                 });
-                dispatch(myVM, {
-                    type: 'MSG_RECV',
-                    channelId: chId,
-                    payload: {
-                        text
-                    }
+            });
+
+            // Draw edges
+            ctx.lineWidth = 1.5;
+            evs.forEach(ev => {
+                const p = pos[ev.id];
+                if (!p) return;
+                ev.causes.forEach(cid => {
+                    const cp = pos[cid];
+                    if (!cp) return;
+                    ctx.beginPath();
+                    ctx.moveTo(cp.x, cp.y);
+                    ctx.quadraticCurveTo((cp.x + p.x) / 2, cp.y - 20, p.x, p.y);
+                    ctx.strokeStyle = ev.type === 'MERGE' ? '#a0a' : '#555';
+                    ctx.stroke();
                 });
-                renderMsgs();
-                renderContacts();
-                updSig()
-            }, 900 + Math.random() * 1300)
+            });
+
+            // Draw nodes
+            evs.forEach(ev => {
+                const p = pos[ev.id];
+                if (!p) return;
+                ctx.fillStyle = COLORS[ev.type] || '#666';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(ev.id.slice(0, 4), p.x, p.y + 3);
+
+                ctx.font = '8px sans-serif';
+                ctx.fillStyle = '#aaa';
+                ctx.fillText(ev.type.slice(0, 4), p.x, p.y + 22);
+            });
         }
 
-        function updSig() {
-            if (!ACH) return;
-            const pv = vms[ACH];
-            const e = energy(myVM),
-                d = decay(myVM),
-                p = priority(myVM);
-            document.getElementById('sfe').style.width = (e * 100).toFixed(1) + '%';
-            document.getElementById('sfd').style.width = (d * 100).toFixed(1) + '%';
-            document.getElementById('sfp').style.width = (p * 100).toFixed(1) + '%';
-            document.getElementById('sve').textContent = e.toFixed(2);
-            document.getElementById('svd').textContent = d.toFixed(2);
-            document.getElementById('svp').textContent = p.toFixed(2);
-            const c = conv(myVM, pv);
-            document.getElementById('cpa').textContent = p.toFixed(2);
-            document.getElementById('cpb').textContent = priority(pv).toFixed(2);
-            document.getElementById('ccorr').textContent = c.ov ? 'true' : 'false';
-            document.getElementById('cres').textContent = c.ok ? '→ CONVERGED' : '→ NOT YET';
-            const dot = document.getElementById('cpdot'),
-                txt = document.getElementById('cptext');
-            if (c.ok) {
-                dot.style.background = 'var(--green)';
-                txt.textContent = 'Converged · Routing active'
-            } else {
-                dot.style.background = 'var(--orange)';
-                txt.textContent = 'Approaching'
+        function renderAll() {
+            const horizEl = document.getElementById('horizon');
+            horizEl.max = globalEvents.length || 1;
+            const horiz = parseInt(horizEl.value);
+            const visible = globalEvents.slice(0, horiz || globalEvents.length);
+            renderEventList('event-list', visible);
+            renderState('state-grid', reduceState(visible));
+            renderDAG();
+        }
+
+        // ==================== INTERACTIONS ====================
+
+        function emitEvent() {
+            const type = document.getElementById('ev-type').value;
+            const author = document.getElementById('ev-author').value;
+            const amount = parseInt(document.getElementById('ev-amount').value) || 10;
+
+            let payload = {};
+            if (type === 'TRANSFER') payload = {
+                from: author,
+                to: author === 'alice' ? 'bob' : 'alice',
+                amount
+            };
+            else if (type === 'STAKE') payload = {
+                from: author,
+                amount
+            };
+            else payload = {
+                target: globalEvents.length ? globalEvents[globalEvents.length - 1].id : null
+            };
+
+            const causes = globalEvents.length ? [globalEvents[globalEvents.length - 1].id] : [];
+            const ev = createEvent(type, payload, author, causes);
+            globalEvents.push(ev);
+
+            // Also add to nodes for realism
+            nodes.A.push({
+                ...ev
+            });
+            nodes.B.push({
+                ...ev
+            });
+
+            renderAll();
+            renderP2P();
+        }
+
+        function emitConcurrent() {
+            const base = globalEvents.length ? globalEvents[globalEvents.length - 1].id : null;
+            const e1 = createEvent('TRANSFER', {
+                from: 'alice',
+                to: 'bob',
+                amount: 15
+            }, 'alice', base ? [base] : []);
+            const e2 = createEvent('TRANSFER', {
+                from: 'carol',
+                to: 'bob',
+                amount: 25
+            }, 'carol', base ? [base] : []);
+            globalEvents.push(e1, e2);
+            nodes.A.push(e1);
+            nodes.B.push(e2);
+            document.getElementById('fork-notice').style.display = 'block';
+            renderAll();
+            renderP2P();
+        }
+
+        function mergeForks() {
+            const tips = globalEvents.filter(e => !globalEvents.some(other => other.causes.includes(e.id)));
+            if (tips.length < 2) return alert("Need at least two concurrent tips");
+            const merge = createEvent('MERGE', {
+                merges: tips.map(t => t.id)
+            }, 'system', tips.map(t => t.id));
+            globalEvents.push(merge);
+            nodes.A.push(merge);
+            nodes.B.push(merge);
+            document.getElementById('fork-notice').style.display = 'none';
+            renderAll();
+            renderP2P();
+        }
+
+        function resetAll() {
+            globalEvents = [];
+            nodes = {
+                A: [],
+                B: []
+            };
+            vectorClock = {
+                alice: 0,
+                bob: 0,
+                carol: 0,
+                system: 0
+            };
+            const genesis = createEvent('GENESIS', {
+                balances: {
+                    alice: 100,
+                    bob: 100,
+                    carol: 100
+                }
+            }, 'system', []);
+            genesis.validity = 'AXIOMATIC';
+            globalEvents.push(genesis);
+            nodes.A.push(genesis);
+            nodes.B.push(genesis);
+            document.getElementById('fork-notice').style.display = 'none';
+            renderAll();
+            renderP2P();
+        }
+
+        // ==================== P2P ====================
+
+        function gossipLog(msg) {
+            const log = document.getElementById('gossip-log');
+            const entry = document.createElement('div');
+            entry.textContent = \`[\${new Date().toLocaleTimeString()}] \${msg}\`;
+            log.prepend(entry);
+            if (log.children.length > 25) log.removeChild(log.lastChild);
+        }
+
+        function gossipSync() {
+            // Full bidirectional gossip
+            const setA = new Set(nodes.A.map(e => e.id));
+            const setB = new Set(nodes.B.map(e => e.id));
+
+            nodes.B.forEach(ev => {
+                if (!setA.has(ev.id)) nodes.A.push({
+                    ...ev
+                });
+            });
+            nodes.A.forEach(ev => {
+                if (!setB.has(ev.id)) nodes.B.push({
+                    ...ev
+                });
+            });
+
+            gossipLog('Full gossip completed — events exchanged');
+            renderP2P();
+        }
+
+        function partialGossip() {
+            if (!nodes.B.length) return;
+            const missing = nodes.B.filter(ev => !nodes.A.some(a => a.id === ev.id));
+            if (!missing.length) return gossipLog('No new events from B');
+            const pick = missing[Math.floor(Math.random() * missing.length)];
+            nodes.A.push({
+                ...pick
+            });
+            gossipLog(\`Partial gossip: A received \${pick.id.slice(0,6)} (\${pick.type}) from B\`);
+            renderP2P();
+        }
+
+        function renderP2P() {
+            ['A', 'B'].forEach(n => {
+                const store = nodes[n];
+                renderEventList('list' + n, store.slice(-8));
+                const state = reduceState(store);
+                renderState('state' + n.replace('list', 'state'), state); // reuse
+                document.getElementById('hash' + n).textContent = hash(JSON.stringify(state)).slice(0, 8);
+            });
+
+            const stateA = reduceState(nodes.A);
+            const stateB = reduceState(nodes.B);
+            const same = JSON.stringify(stateA) === JSON.stringify(stateB);
+            document.getElementById('convergence').innerHTML = same ?
+                \`<span style="color:#0a0">✓ Fully Converged</span>\` :
+                \`<span style="color:#fa0">\${Math.round(Math.random()*30+70)}% overlap — states diverging</span>\`;
+        }
+
+        // ==================== DSL ====================
+
+        const SCHEMA = {
+            TRANSFER: {
+                from: 'identity',
+                to: 'identity',
+                amount: 'uint'
+            },
+            STAKE: {
+                from: 'identity',
+                amount: 'uint'
+            },
+            CONFIRM: {
+                target: 'hash'
+            },
+            DISPUTE: {
+                target: 'hash'
+            },
+            VOTE: {
+                from: 'identity',
+                proposal: 'string',
+                weight: 'uint'
+            }
+        };
+
+        function renderSchema() {
+            const container = document.getElementById('schema');
+            container.innerHTML = Object.keys(SCHEMA).map(t =>
+                \`<span style="background:#2a2a2a;padding:4px 10px;border-radius:6px;font-size:12px">\${t}</span>\`
+            ).join('');
+        }
+
+        function parseDSL() {
+            // Simple parser — improved from original
+            const src = document.getElementById('dsl-input').value;
+            const out = document.getElementById('dsl-output');
+            out.innerHTML = src.replace(/event (\\w+)/g, '<span class="dsl-token tok-kw">event</span> <span class="dsl-token tok-id">$1</span>')
+                .replace(/(\\w+):/g, '<span class="dsl-token tok-id">$1</span>:')
+                .replace(/"([^"]+)"/g, '<span class="dsl-token tok-str">"$1"</span>');
+        }
+
+        function compileDSL() {
+            parseDSL();
+            // For demo we emit a simple transfer from DSL
+            const ev = createEvent('TRANSFER', {
+                from: 'alice',
+                to: 'bob',
+                amount: 30
+            }, 'alice', []);
+            globalEvents.push(ev);
+            nodes.A.push(ev);
+            nodes.B.push(ev);
+            document.getElementById('dsl-compiled').textContent = JSON.stringify(ev, null, 2);
+            renderAll();
+            renderP2P();
+            switchTab(0);
+        }
+
+        function loadExample(name) {
+            const examples = {
+                fork: \`event TRANSFER { from: identity = "alice" to: identity = "bob" amount: uint = 20 causes: [] = [] }\\n\\nevent TRANSFER { from: identity = "carol" to: identity = "bob" amount: uint = 35 causes: [] = [] }\`,
+                vote: \`event VOTE { from: identity = "alice" proposal: string = "upgrade" weight: uint = 60 causes: [] = [] }\\nevent VOTE { from: identity = "bob" proposal: string = "upgrade" weight: uint = 40 causes: [] = [] }\`
+            };
+            document.getElementById('dsl-input').value = examples[name] || '';
+            parseDSL();
+        }
+
+        // Tab switching
+        function switchTab(n) {
+            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n));
+            document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === n));
+            if (n === 0) renderAll();
+            if (n === 1) renderP2P();
+            if (n === 2) {
+                renderSchema();
+                parseDSL();
             }
         }
 
-        function hk(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                send()
-            }
+        // ==================== INIT ====================
+        resetAll();
+        switchTab(0);
+        window.addEventListener('resize', renderDAG);
+    <\/script>`,
+  dik:   `<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0f;
+      color: #00ff88;
+      overflow: hidden;
+    }
+    
+    #container {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+    
+    #header {
+      background: #12121a;
+      padding: 20px;
+      border-bottom: 2px solid #00ff88;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    #stats {
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      color: #888;
+    }
+    
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .stat-value {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
+    #main {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 1px;
+      background: #2a2a3a;
+    }
+    
+    #dik-container {
+      position: relative;
+      background: #0a0a0f;
+      overflow: hidden;
+    }
+    
+    #sidebar {
+      background: #12121a;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    #sidebar h2 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #00ff88;
+    }
+    
+    #intent-log {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #0a0a0f;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    
+    .intent-item {
+      font-size: 11px;
+      padding: 5px;
+      margin-bottom: 5px;
+      background: #1a1a25;
+      border-left: 2px solid #00ff88;
+      padding-left: 8px;
+    }
+    
+    .intent-type {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
+    .intent-target {
+      color: #888;
+    }
+    
+    .intent-payload {
+      color: #666;
+      font-size: 10px;
+    }
+    
+    .dik-node {
+      position: absolute;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #00ff88;
+      font-size: 14px;
+      user-select: none;
+    }
+    
+    .dik-node:hover {
+      background: rgba(0, 255, 136, 0.2);
+      border-color: #00ff88;
+    }
+    
+    .dik-node.active {
+      background: rgba(0, 255, 136, 0.3);
+      border-color: #00ff88;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+    }
+    
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    button {
+      background: #00ff88;
+      color: #0a0a0f;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: inherit;
+    }
+    
+    button:hover {
+      background: #00aa5a;
+    }
+    
+    #tree-view {
+      font-size: 11px;
+      color: #666;
+      white-space: pre;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+<div id="container">
+    <div id="header">
+      <h1>🎯 DIK (Deterministic Interaction Kernel) Demo</h1>
+      <div id="stats">
+        <div class="stat">
+          <span>Tick:</span>
+          <span class="stat-value" id="tick-count">0</span>
+        </div>
+        <div class="stat">
+          <span>Intents:</span>
+          <span class="stat-value" id="intent-count">0</span>
+        </div>
+        <div class="stat">
+          <span>Nodes:</span>
+          <span class="stat-value" id="node-count">0</span>
+        </div>
+        <div class="stat">
+          <span>FPS:</span>
+          <span class="stat-value" id="fps">60</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="main">
+      <div id="dik-container"></div>
+      
+      <div id="sidebar">
+        <h2>Intent Log</h2>
+        <div id="intent-log"></div>
+        
+        <h2>Controls</h2>
+        <div id="controls">
+          <button onclick="clearLog()">Clear Log</button>
+          <button onclick="addRandomNode()">Add Random Node</button>
+          <button onclick="resetTree()">Reset Tree</button>
+        </div>
+        
+        <h2>Spatial Tree</h2>
+        <div id="tree-view"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // This demo shows the DIK system in action
+    // Note: In production, import from actual modules
+    
+    console.log('[DIK Demo] Starting...');
+    
+    // Simple DIK implementation for demo
+    class SimpleDIK {
+      constructor() {
+        this.tick = 0;
+        this.nodes = new Map();
+        this.intents = [];
+        this.rootId = 'root';
+        
+        // Create root
+        this.nodes.set(this.rootId, {
+          id: this.rootId,
+          x: 0, y: 0, w: window.innerWidth - 350, h: window.innerHeight - 100,
+          children: []
+        });
+      }
+      
+      addNode(id, x, y, w, h, parentId = 'root') {
+        const node = { id, x, y, w, h, children: [] };
+        this.nodes.set(id, node);
+        
+        const parent = this.nodes.get(parentId);
+        if (parent) {
+          parent.children.push(id);
         }
+        
+        return node;
+      }
+      
+      hitTest(x, y) {
+        // Simple hit test
+        for (const [id, node] of this.nodes) {
+          if (id === 'root') continue;
+          if (x >= node.x && x < node.x + node.w &&
+              y >= node.y && y < node.y + node.h) {
+            return node;
+          }
+        }
+        return null;
+      }
+      
+      processInput(type, x, y) {
+        const target = this.hitTest(x, y);
+        
+        if (target) {
+          const intent = {
+            type: \`ui.\${type}\`,
+            target: target.id,
+            x, y,
+            tick: this.tick
+          };
+          
+          this.intents.push(intent);
+          return intent;
+        }
+        
+        return null;
+      }
+      
+      runFrame() {
+        this.tick++;
+        return this.intents.slice();
+      }
+    }
+    
+    // Initialize
+    const dik = new SimpleDIK();
+    const container = document.getElementById('dik-container');
+    const intentLog = document.getElementById('intent-log');
+    const treeView = document.getElementById('tree-view');
+    
+    let activeNode = null;
+    let totalIntents = 0;
+    
+    // Create initial nodes
+    function initNodes() {
+      const colors = ['#ff0088', '#00ff88', '#0088ff', '#ff8800'];
+      
+      for (let i = 0; i < 5; i++) {
+        const x = 100 + i * 150;
+        const y = 100 + Math.random() * 300;
+        const w = 120;
+        const h = 80;
+        
+        const node = dik.addNode(\`node-\${i}\`, x, y, w, h);
+        node.color = colors[i % colors.length];
+        node.label = \`Node \${i}\`;
+        
+        renderNode(node);
+      }
+      
+      updateTreeView();
+      updateStats();
+    }
+    
+    // Render node to DOM
+    function renderNode(node) {
+      const el = document.createElement('div');
+      el.id = \`dik-\${node.id}\`;
+      el.className = 'dik-node';
+      el.style.left = '0';
+      el.style.top = '0';
+      el.style.width = \`\${node.w}px\`;
+      el.style.height = \`\${node.h}px\`;
+      el.style.transform = \`translate(\${node.x}px, \${node.y}px)\`;
+      el.textContent = node.label || node.id;
+      
+      if (node.color) {
+        el.style.borderColor = node.color;
+        el.style.color = node.color;
+      }
+      
+      container.appendChild(el);
+    }
+    
+    // Handle interactions
+    container.addEventListener('pointerdown', (e) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const intent = dik.processInput('pointerdown', x, y);
+      
+      if (intent) {
+        totalIntents++;
+        addIntentToLog(intent);
+        
+        // Visual feedback
+        if (activeNode) {
+          const prevEl = document.getElementById(\`dik-\${activeNode.id}\`);
+          if (prevEl) prevEl.classList.remove('active');
+        }
+        
+        const node = dik.nodes.get(intent.target);
+        const el = document.getElementById(\`dik-\${node.id}\`);
+        if (el) el.classList.add('active');
+        activeNode = node;
+        
+        updateStats();
+      }
+    });
+    
+    // Add intent to log
+    function addIntentToLog(intent) {
+      const item = document.createElement('div');
+      item.className = 'intent-item';
+      item.innerHTML = \`
+        <div class="intent-type">\${intent.type}</div>
+        <div class="intent-target">target: \${intent.target}</div>
+        <div class="intent-payload">x: \${Math.round(intent.x)}, y: \${Math.round(intent.y)}, tick: \${intent.tick}</div>
+      \`;
+      
+      intentLog.insertBefore(item, intentLog.firstChild);
+      
+      // Keep only last 20
+      while (intentLog.children.length > 20) {
+        intentLog.removeChild(intentLog.lastChild);
+      }
+    }
+    
+    // Update stats
+    function updateStats() {
+      document.getElementById('tick-count').textContent = dik.tick;
+      document.getElementById('intent-count').textContent = totalIntents;
+      document.getElementById('node-count').textContent = dik.nodes.size - 1; // excluding root
+    }
+    
+    // Update tree view
+    function updateTreeView() {
+      let tree = 'root\\n';
+      for (const [id, node] of dik.nodes) {
+        if (id !== 'root') {
+          tree += \`  └─ \${id} (\${node.x},\${node.y} \${node.w}×\${node.h})\\n\`;
+        }
+      }
+      treeView.textContent = tree;
+    }
+    
+    // Global functions
+    window.clearLog = () => {
+      intentLog.innerHTML = '';
+      totalIntents = 0;
+      updateStats();
+    };
+    
+    window.addRandomNode = () => {
+      const id = \`node-\${Date.now()}\`;
+      const x = Math.random() * (container.clientWidth - 150);
+      const y = Math.random() * (container.clientHeight - 100);
+      
+      const node = dik.addNode(id, x, y, 120, 80);
+      node.color = '#' + Math.floor(Math.random()*16777215).toString(16);
+      node.label = id.slice(0, 15);
+      
+      renderNode(node);
+      updateTreeView();
+      updateStats();
+    };
+    
+    window.resetTree = () => {
+      container.innerHTML = '';
+      dik.nodes.clear();
+      dik.nodes.set('root', {
+        id: 'root',
+        x: 0, y: 0, w: container.clientWidth, h: container.clientHeight,
+        children: []
+      });
+      initNodes();
+    };
+    
+    // FPS counter
+    let lastTime = performance.now();
+    let frames = 0;
+    
+    function updateFPS() {
+      frames++;
+      const now = performance.now();
+      
+      if (now - lastTime >= 1000) {
+        document.getElementById('fps').textContent = frames;
+        frames = 0;
+        lastTime = now;
+      }
+      
+      requestAnimationFrame(updateFPS);
+    }
+    updateFPS();
+    
+    // Frame loop
+    function loop() {
+      dik.runFrame();
+      requestAnimationFrame(loop);
+    }
+    loop();
+    
+    // Initialize
+    initNodes();
+    
+    console.log('[DIK Demo] Ready! Click on the nodes to interact.');
+  <\/script>`
+};
 
-        function hi(el) {
-            el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-            document.getElementById('sbtn').classList.toggle('active', el.value.trim().length > 0)
-        }
+const appInited = {};
+const openApps = new Set();
 
-        function scrollB() {
-            const w = document.getElementById('mwrap');
-            w.scrollTop = w.scrollHeight
-        }
+function openApp(id) {
+  if (!appInited[id]) {
+    const el = document.getElementById(id + '-content');
+    el.innerHTML = APP_BODIES[id];
+    el.querySelectorAll('script').forEach(old => {
+      const s = document.createElement('script');
+      if (old.type && old.type !== 'text/javascript') s.type = old.type;
+      s.textContent = old.textContent;
+      old.replaceWith(s);
+    });
+    appInited[id] = true;
+    // Remove badge when first opened
+    const badge = document.getElementById('badge-' + id);
+    if (badge) setTimeout(() => badge.remove(), 400);
+  }
+  openApps.add(id);
+  document.getElementById('homescreen').classList.add('hidden');
+  const win = document.getElementById('win-' + id);
+  win.classList.remove('closing');
+  requestAnimationFrame(() => requestAnimationFrame(() => win.classList.add('open')));
+  document.getElementById('dock-' + id)?.classList.add('running');
 
-        function openLog() {
-            document.getElementById('lpanel').classList.add('open')
-        }
+  // Trigger resize for canvas-based apps
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 400);
+}
 
-        function closeLog() {
-            document.getElementById('lpanel').classList.remove('open')
-        }
+function closeApp(id) {
+  const win = document.getElementById('win-' + id);
+  win.classList.add('closing');
+  setTimeout(() => {
+    win.classList.remove('open', 'closing');
+    openApps.delete(id);
+    if (openApps.size === 0) {
+      document.getElementById('homescreen').classList.remove('hidden');
+    }
+  }, 380);
+}
 
-        function sw(t) {
-            ltab = t
-        }
-        init();
-        setTimeout(() => {
-            openCh('alice')
-        }, 200);
-    </script>
+// Swipe down to go home
+let ty0 = 0;
+document.addEventListener('touchstart', e => { ty0 = e.touches[0].clientY; }, {passive:true});
+document.addEventListener('touchend', e => {
+  const dy = e.changedTouches[0].clientY - ty0;
+  if (dy > 90 && openApps.size > 0) {
+    const last = [...openApps].pop();
+    closeApp(last);
+  }
+}, {passive:true});
+</script>
 </body>
-
 </html>
