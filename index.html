@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Mesh · Talk</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -14,242 +12,175 @@
   --bubble-sent-txt:#FFFFFF;--bubble-recv-txt:#000000;
   --txt:#000000;--txt2:#3C3C43;--txt3:#8E8E93;--txt4:#C7C7CC;
   --sep:#C6C6C8;--sep2:#E5E5EA;
-  --blue:#007AFF;--green:#34C759;--red:#FF3B30;--amber:#FF9500;--purple:#AF52DE;
-  --teal:#5AC8FA;--indigo:#5856D6;
-  --input-bg:#FFFFFF;--sidebar-item-hover:#F2F2F7;--sidebar-sel:#007AFF;
+  --blue:#007AFF;--green:#34C759;--red:#FF3B30;--amber:#FF9500;--purple:#AF52DE;--teal:#5AC8FA;
+  --input-bg:#FFFFFF;--sidebar-sel:#007AFF;
   --mono:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
   --brand:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
-  --sw:320px;
-  --radius-bubble:18px;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px)
+  --sw:310px
 }
 @media(prefers-color-scheme:dark){
   :root{
-    --bg:#000000;--sidebar-bg:#1C1C1E;--chat-bg:#000000;
-    --bubble-recv:#2C2C2E;--bubble-recv-txt:#FFFFFF;
-    --txt:#FFFFFF;--txt2:#EBEBF5;--txt3:#8E8E93;--txt4:#3A3A3C;
-    --sep:#38383A;--sep2:#2C2C2E;
-    --input-bg:#1C1C1E;--sidebar-item-hover:#2C2C2E;
+    --bg:#000;--sidebar-bg:#1C1C1E;--chat-bg:#000;
+    --bubble-recv:#2C2C2E;--bubble-recv-txt:#FFF;
+    --txt:#FFF;--txt2:#EBEBF5;--txt3:#8E8E93;--txt4:#3A3A3C;
+    --sep:#38383A;--sep2:#2C2C2E;--input-bg:#1C1C1E;
   }
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--mono);color:var(--txt);-webkit-font-smoothing:antialiased}
 #app{display:flex;height:100vh;height:100dvh}
 
-/* ══ SIDEBAR ════════════════════════════════════════════════════════════════ */
-#sidebar{width:var(--sw);flex-shrink:0;background:var(--sidebar-bg);border-right:0.5px solid var(--sep);display:flex;flex-direction:column;overflow:hidden}
-
-/* Status bar */
-#sb-top{padding:16px 16px 8px;border-bottom:0.5px solid var(--sep2)}
+/* ══ SIDEBAR ══════════════════════════════════════════════════════════════ */
+#sidebar{width:var(--sw);flex-shrink:0;background:var(--sidebar-bg);border-right:.5px solid var(--sep);display:flex;flex-direction:column;overflow:hidden}
+#sb-top{padding:14px 14px 8px;border-bottom:.5px solid var(--sep2)}
 #sb-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-#sb-title{font-family:var(--brand);font-size:22px;font-weight:700;letter-spacing:-0.5px;color:var(--txt)}
+#sb-title{font-family:var(--brand);font-size:22px;font-weight:700;letter-spacing:-.5px}
 #sb-title span{color:var(--blue)}
 .dot-row{display:flex;align-items:center;gap:5px}
-.xdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--txt4);transition:background .3s,box-shadow .3s}
-.xdot.on.bc{background:var(--blue);box-shadow:0 0 6px var(--blue)}
-.xdot.on.ws{background:var(--green);box-shadow:0 0 6px var(--green)}
-.xdot.on.rtc{background:var(--purple);box-shadow:0 0 6px var(--purple)}
-.xdot.warn{background:var(--amber);box-shadow:0 0 4px var(--amber)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.xdot{width:8px;height:8px;border-radius:50%;background:var(--txt4);transition:background .3s,box-shadow .3s;flex-shrink:0}
 .xdot.on{animation:pulse 2.5s infinite}
-.dot-label{font-size:10px;color:var(--txt3);letter-spacing:0.3px}
+.xdot.ws.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.xdot.rtc.on{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+.xdot.p2p.on{background:var(--blue);box-shadow:0 0 6px var(--blue)}
+.xdot.warn{background:var(--amber)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.dot-label{font-size:10px;color:var(--txt3)}
 
-/* Identity pill */
-#identity-row{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--sep2);border-radius:10px;margin-top:6px;cursor:pointer}
-#identity-row:hover{background:var(--sep)}
+/* Identity */
+#id-row{display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--sep2);border-radius:10px;margin-top:6px;cursor:pointer}
+#id-row:hover{background:var(--sep)}
 #my-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 #my-handle-inp{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--txt);min-width:0}
-#my-did-el{font-size:9px;color:var(--txt3);font-family:monospace;letter-spacing:-0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+#my-pid{font-size:9px;color:var(--txt3);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
 
-/* Relay row */
-#relay-section{padding:8px 12px 6px;border-bottom:0.5px solid var(--sep2);background:var(--sidebar-bg)}
-#relay-label{font-size:11px;color:var(--txt3);font-weight:500;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px}
-#relay-inner{display:flex;gap:6px;align-items:center}
-#relay-inp{flex:1;background:var(--sep2);border:1px solid transparent;border-radius:8px;padding:6px 9px;font-family:monospace;font-size:11px;color:var(--txt);outline:none;transition:border-color .15s;min-width:0}
+/* Relay */
+#relay-section{padding:8px 12px 6px;border-bottom:.5px solid var(--sep2)}
+#relay-label{font-size:11px;color:var(--txt3);font-weight:500;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+#relay-inner{display:flex;gap:6px}
+#relay-inp{flex:1;background:var(--sep2);border:1.5px solid transparent;border-radius:8px;padding:6px 9px;font-family:monospace;font-size:11px;color:var(--txt);outline:none;transition:border-color .15s;min-width:0}
 #relay-inp:focus{border-color:var(--blue)}
 #relay-inp::placeholder{color:var(--txt3)}
-#relay-btn{padding:6px 11px;background:var(--blue);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--mono);transition:opacity .15s}
+#relay-btn{padding:6px 11px;background:var(--blue);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s}
 #relay-btn:hover{opacity:.85}
-#relay-btn:active{opacity:.7}
-#relay-btn.disconnect{background:var(--sep2);color:var(--red)}
+#relay-btn.disc{background:var(--sep2);color:var(--red)}
 #relay-status-row{display:flex;align-items:center;gap:5px;margin-top:4px;min-height:14px}
-#relay-status-txt{font-size:10px;color:var(--txt3)}
-#relay-status-dot{width:6px;height:6px;border-radius:50%;background:var(--txt4);flex-shrink:0;transition:background .25s}
-#relay-status-dot.on{background:var(--green);animation:pulse 2s infinite}
-#relay-status-dot.warn{background:var(--amber)}
-#relay-status-dot.err{background:var(--red)}
+#rs-dot{width:6px;height:6px;border-radius:50%;background:var(--txt4);flex-shrink:0;transition:background .2s}
+#rs-dot.on{background:var(--green);animation:pulse 2s infinite}
+#rs-dot.warn{background:var(--amber)}
+#rs-dot.err{background:var(--red)}
+#rs-txt{font-size:10px;color:var(--txt3)}
 
-/* Peer list */
-#peers-label{padding:10px 16px 4px;display:flex;align-items:center;justify-content:space-between}
-#peers-label-txt{font-size:13px;font-weight:600;color:var(--txt);letter-spacing:-0.2px}
+/* Peers */
+#peers-bar{padding:8px 14px 3px;display:flex;justify-content:space-between;align-items:center}
+#peers-bar-lbl{font-size:13px;font-weight:600;color:var(--txt)}
 #pcount{font-size:12px;color:var(--txt3)}
 #peers{overflow-y:auto;flex:1;padding-bottom:8px}
 #peers::-webkit-scrollbar{width:4px}
 #peers::-webkit-scrollbar-thumb{background:var(--sep);border-radius:2px}
-#no-peers{padding:24px 16px;text-align:center;color:var(--txt3);font-size:13px;line-height:1.7}
-#no-peers strong{color:var(--blue);display:block;margin-bottom:6px;font-size:14px}
-
-/* Peer row */
-.pi{display:flex;align-items:center;gap:11px;padding:10px 16px;cursor:pointer;transition:background .1s;position:relative}
-.pi:hover{background:var(--sidebar-item-hover)}
+#no-peers{padding:20px 14px;text-align:center;color:var(--txt3);font-size:13px;line-height:1.7}
+#no-peers strong{color:var(--blue);display:block;margin-bottom:4px;font-size:14px}
+.pi{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background .1s;position:relative}
+.pi:hover{background:var(--sep2)}
 .pi.active{background:var(--blue)}
 .pi.active .pn,.pi.active .pp,.pi.active .pt{color:#fff!important}
-.pi.active .pc-badge{background:rgba(255,255,255,.2)!important;color:#fff!important}
-.pi::after{content:'';position:absolute;bottom:0;left:60px;right:0;height:0.5px;background:var(--sep2)}
+.pi.active .pc-b{background:rgba(255,255,255,.2)!important;color:#fff!important}
+.pi::after{content:'';position:absolute;bottom:0;left:54px;right:0;height:.5px;background:var(--sep2)}
 .pi.active::after{display:none}
-.av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;color:#fff;position:relative}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;position:relative}
 .av::after{content:'';position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;border:2px solid var(--sidebar-bg);background:var(--txt4);transition:background .3s}
 .av.enc::after{background:var(--green)}
-.av.unenc::after{background:var(--amber)}
 .pm{flex:1;min-width:0}
-.pn{font-size:15px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px}
+.pn{font-size:15px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pp{font-size:12px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.pr{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.pr{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .pt{font-size:11px;color:var(--txt3)}
-.pc-badge{font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px}
-.pc-badge.rtc{background:rgba(175,82,222,.12);color:var(--purple)}
-.pc-badge.ws{background:rgba(52,199,89,.12);color:var(--green)}
-.pc-badge.bc{background:rgba(0,122,255,.1);color:var(--blue)}
+.pc-b{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px}
+.pc-b.rtc{background:rgba(175,82,222,.12);color:var(--purple)}
+.pc-b.ws{background:rgba(52,199,89,.12);color:var(--green)}
+.pc-b.p2p{background:rgba(0,122,255,.1);color:var(--blue)}
 
-/* ══ MAIN ════════════════════════════════════════════════════════════════════ */
+/* ══ MAIN ═════════════════════════════════════════════════════════════════ */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--chat-bg)}
-
-/* Empty state */
-#empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px}
-.e-icon{width:72px;height:72px;background:linear-gradient(145deg,#5AC8FA,#007AFF);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 24px rgba(0,122,255,.25)}
-.e-title{font-family:var(--brand);font-size:20px;font-weight:700;color:var(--txt);letter-spacing:-0.5px}
-.e-sub{font-size:14px;color:var(--txt3);text-align:center;max-width:280px;line-height:1.5}
-.e-steps{background:var(--sidebar-bg);border-radius:14px;padding:14px 16px;width:100%;max-width:340px;font-size:12.5px;color:var(--txt3);line-height:2.1}
+#invite-bar{padding:7px 14px;background:rgba(0,122,255,.06);border-bottom:.5px solid rgba(0,122,255,.15);font-size:12px;color:var(--blue);display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer;font-weight:500}
+#invite-bar:hover{background:rgba(0,122,255,.1)}
+#empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:32px}
+.e-icon{width:68px;height:68px;background:linear-gradient(145deg,#5AC8FA,#007AFF);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 20px rgba(0,122,255,.25)}
+.e-title{font-family:var(--brand);font-size:20px;font-weight:700;color:var(--txt)}
+.e-sub{font-size:13px;color:var(--txt3);text-align:center;max-width:270px;line-height:1.5}
+.e-steps{background:var(--sidebar-bg);border-radius:12px;padding:12px 14px;width:100%;max-width:320px;font-size:12px;color:var(--txt3);line-height:2}
 .e-steps b{color:var(--blue);font-weight:600}
 .e-steps code{font-family:monospace;background:var(--sep2);padding:1px 5px;border-radius:4px;color:var(--txt2)}
 
-/* Chat area */
+/* Chat */
 #carea{flex:1;display:none;flex-direction:column;overflow:hidden}
-
-/* Chat header */
-#cheader{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--sidebar-bg);border-bottom:0.5px solid var(--sep);flex-shrink:0;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-#hav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+#cheader{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sidebar-bg);border-bottom:.5px solid var(--sep);flex-shrink:0}
+#hav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
 #hinfo{flex:1;min-width:0;text-align:center}
-#hname{font-size:16px;font-weight:600;color:var(--txt);letter-spacing:-0.3px}
+#hname{font-size:16px;font-weight:600;color:var(--txt)}
 #hstatus{font-size:11px;color:var(--txt3);margin-top:1px}
-.hbtn{background:var(--sep2);border:none;color:var(--blue);font-family:var(--mono);font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.hbtn{background:var(--sep2);border:none;color:var(--blue);font-family:var(--mono);font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;cursor:pointer}
 .hbtn:hover{opacity:.75}
 
-/* Signal bar (compact) */
-#sigbar{display:flex;align-items:center;gap:8px;padding:4px 16px;border-bottom:0.5px solid var(--sep2);background:var(--sidebar-bg);flex-shrink:0;opacity:.85}
-.sg{display:flex;align-items:center;gap:4px}
-.sgl{font-size:10px;color:var(--txt3);min-width:12px}
-.sgtrack{width:36px;height:2px;background:var(--sep2);border-radius:1px;overflow:hidden}
-.sgfill{height:100%;border-radius:1px;transition:width .5s ease}
-.sgv{font-size:10px;min-width:26px;color:var(--txt3)}
-#transport-badge{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:auto}
-.tb-rtc{background:rgba(175,82,222,.12);color:var(--purple)}
-.tb-ws{background:rgba(52,199,89,.12);color:var(--green)}
-.tb-bc{background:rgba(0,122,255,.1);color:var(--blue)}
-
-/* Messages */
-#mwrap{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:2px;scroll-behavior:smooth}
+#mwrap{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:1px}
 #mwrap::-webkit-scrollbar{width:4px}
 #mwrap::-webkit-scrollbar-thumb{background:var(--sep);border-radius:2px}
-
-/* Message group spacing */
-.msg-group-gap{height:10px}
-
-.mr{display:flex;flex-direction:column;max-width:72%;align-items:flex-start}
+.msg-gap{height:10px}
+.mr{display:flex;flex-direction:column;max-width:72%}
 .mr.sent{align-self:flex-end;align-items:flex-end}
-.mr.recv{align-self:flex-start}
-.mr+.mr.sent{margin-top:1px}
-.mr+.mr.recv{margin-top:1px}
-
-/* Bubble */
-.bb{
-  padding:9px 13px;
-  word-break:break-word;
-  font-size:15px;
-  line-height:1.4;
-  position:relative;
-  max-width:100%;
-}
-.bb.sent{
-  background:var(--bubble-sent);color:var(--bubble-sent-txt);
-  border-radius:18px 18px 4px 18px;
-}
-.bb.recv{
-  background:var(--bubble-recv);color:var(--bubble-recv-txt);
-  border-radius:18px 18px 18px 4px;
-}
-/* Consecutive same-sender rounding */
-.mr.sent .bb:not(:last-of-type){border-radius:18px 18px 18px 18px}
-.mr.recv .bb:not(:last-of-type){border-radius:18px 18px 18px 18px}
-
+.mr.recv{align-self:flex-start;align-items:flex-start}
+.bb{padding:9px 13px;word-break:break-word;font-size:15px;line-height:1.4}
+.bb.sent{background:var(--bubble-sent);color:var(--bubble-sent-txt);border-radius:18px 18px 4px 18px}
+.bb.recv{background:var(--bubble-recv);color:var(--bubble-recv-txt);border-radius:18px 18px 18px 4px}
 .mt{font-size:11px;color:var(--txt3);margin-top:3px;padding:0 2px;display:flex;align-items:center;gap:4px}
 .mr.sent .mt{flex-direction:row-reverse}
 .enc-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
-
-.sys-msg{text-align:center;font-size:11px;color:var(--txt3);margin:8px auto;background:var(--sep2);padding:3px 10px;border-radius:10px;max-width:80%;line-height:1.5}
-
-/* Typing indicator */
-.typing-indicator{display:none;align-self:flex-start;padding:9px 14px;background:var(--bubble-recv);border-radius:18px 18px 18px 4px;gap:4px}
-.typing-indicator.show{display:flex}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--txt3);animation:typing 1.4s infinite}
-.typing-dot:nth-child(2){animation-delay:.2s}
-.typing-dot:nth-child(3){animation-delay:.4s}
-@keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.sys-msg{text-align:center;font-size:11px;color:var(--txt3);margin:8px auto;background:var(--sep2);padding:3px 10px;border-radius:10px;max-width:80%;line-height:1.5;align-self:center}
 
 /* Input */
-#cinput{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;padding-bottom:calc(10px + var(--safe-bottom));border-top:0.5px solid var(--sep2);background:var(--sidebar-bg);flex-shrink:0}
+#cinput{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;border-top:.5px solid var(--sep2);background:var(--sidebar-bg);flex-shrink:0}
 #inp-wrap{flex:1;display:flex;align-items:flex-end;gap:6px;background:var(--input-bg);border:1.5px solid var(--sep);border-radius:22px;padding:6px 12px;transition:border-color .15s}
 #inp-wrap:focus-within{border-color:var(--blue)}
 #minp{flex:1;background:transparent;border:none;font-family:var(--mono);font-size:15px;color:var(--txt);resize:none;min-height:22px;max-height:120px;outline:none;line-height:1.45}
 #minp::placeholder{color:var(--txt3)}
-#sbtn{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--sep);color:var(--txt3);flex-shrink:0;padding:0}
+#sbtn{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--sep);color:var(--txt3);flex-shrink:0;padding:0;transition:all .15s}
 #sbtn.active{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(0,122,255,.4)}
 #sbtn svg{width:16px;height:16px;fill:currentColor;margin-right:-1px}
 
-/* Invite bar */
-#invite-bar{padding:8px 14px;background:rgba(0,122,255,.06);border-bottom:0.5px solid rgba(0,122,255,.15);font-size:12px;color:var(--blue);display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer;font-weight:500;transition:background .15s}
-#invite-bar:hover{background:rgba(0,122,255,.1)}
-#invite-bar svg{width:14px;height:14px;fill:currentColor;flex-shrink:0;opacity:.7}
-
 /* Log panel */
-#lpanel{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--sidebar-bg);border-left:0.5px solid var(--sep);z-index:100;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.12)}
+#lpanel{position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--sidebar-bg);border-left:.5px solid var(--sep);z-index:100;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 20px rgba(0,0,0,.1)}
 #lpanel.open{transform:none}
-#lphead{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:0.5px solid var(--sep)}
+#lphead{display:flex;align-items:center;justify-content:space-between;padding:13px;border-bottom:.5px solid var(--sep)}
 #lphead h2{font-size:15px;font-weight:700;color:var(--txt)}
-#lpclose{background:var(--sep2);border:none;color:var(--txt2);cursor:pointer;font-size:12px;padding:4px 10px;border-radius:7px;font-family:var(--mono)}
-#ltabs{display:flex;border-bottom:0.5px solid var(--sep);flex-shrink:0;overflow-x:auto}
-.ltab{padding:8px 12px;font-size:11px;font-weight:500;cursor:pointer;color:var(--txt3);border-bottom:2px solid transparent;white-space:nowrap;transition:all .12s}
+#lpclose{background:var(--sep2);border:none;color:var(--txt2);cursor:pointer;font-size:11px;padding:4px 10px;border-radius:6px}
+#ltabs{display:flex;border-bottom:.5px solid var(--sep)}
+.ltab{flex:1;padding:8px 4px;font-size:11px;font-weight:500;cursor:pointer;color:var(--txt3);border-bottom:2px solid transparent;text-align:center;transition:all .1s}
 .ltab.act{color:var(--blue);border-bottom-color:var(--blue)}
 #lcontent{flex:1;overflow-y:auto;padding:10px 12px;font-size:11px;color:var(--txt2);line-height:1.8;font-family:monospace}
-.log-entry{padding:3px 0;border-bottom:0.5px solid var(--sep2);word-break:break-all;font-family:monospace}
+.log-entry{padding:3px 0;border-bottom:.5px solid var(--sep2);word-break:break-all}
 .etype{color:var(--blue);font-weight:600}
 .ets{color:var(--txt3)}
-.ecid{color:var(--purple)}
-.crow{display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid var(--sep2);padding:3px 0}
-.ckey{color:var(--txt3)}
-.cval{color:var(--txt);font-weight:500}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:.5px solid var(--sep2);padding:3px 0;gap:8px}
+.ckey{color:var(--txt3);flex-shrink:0}
+.cval{color:var(--txt);font-weight:500;text-align:right;word-break:break-all}
 .cval.ok{color:var(--green)}
 .cval.no{color:var(--amber)}
-#cstate{display:flex;align-items:center;gap:7px;padding:8px 10px;background:var(--sep2);border-radius:8px;margin-top:7px;font-size:11px}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- ═══ SIDEBAR ═══ -->
   <div id="sidebar">
     <div id="sb-top">
       <div id="sb-title-row">
         <div id="sb-title">Mesh<span>·</span>Talk</div>
         <div class="dot-row">
-          <div class="xdot bc" id="dotBC"></div><span class="dot-label">BC</span>
           <div class="xdot ws" id="dotWS"></div><span class="dot-label">WS</span>
+          <div class="xdot p2p" id="dotP2P"></div><span class="dot-label">P2P</span>
           <div class="xdot rtc" id="dotRTC"></div><span class="dot-label">RTC</span>
         </div>
       </div>
-      <div id="identity-row" title="Click to edit your name">
+      <div id="id-row">
         <div id="my-av"></div>
-        <input id="my-handle-inp" type="text" value="" placeholder="Your name…" spellcheck="false" maxlength="24">
-        <div id="my-did-el">…</div>
+        <input id="my-handle-inp" type="text" placeholder="Your name…" spellcheck="false" maxlength="24">
+        <div id="my-pid">…</div>
       </div>
     </div>
 
@@ -260,37 +191,35 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--mon
         <button id="relay-btn" onclick="toggleRelay()">Connect</button>
       </div>
       <div id="relay-status-row">
-        <div id="relay-status-dot"></div>
-        <span id="relay-status-txt">Not connected — peers on same machine only</span>
+        <div id="rs-dot"></div>
+        <span id="rs-txt">Not connected — same-tab only</span>
       </div>
     </div>
 
-    <div id="peers-label">
-      <span id="peers-label-txt">Messages</span>
+    <div id="peers-bar">
+      <span id="peers-bar-lbl">Messages</span>
       <span id="pcount"></span>
     </div>
     <div id="peers">
-      <div id="no-peers">
-        <strong>No peers yet</strong>
-        Open this page in another tab for local chat, or connect a relay server to reach other machines.
-      </div>
+      <div id="no-peers"><strong>No peers yet</strong>Open in another tab, or connect a relay to reach other machines.</div>
     </div>
   </div>
 
-  <!-- ═══ MAIN ═══ -->
   <div id="main">
     <div id="invite-bar" onclick="copyInvite()">
-      <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-      Share encrypted invite link
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+      Share relay invite link
     </div>
     <div id="empty">
       <div class="e-icon">💬</div>
       <div class="e-title">No conversation selected</div>
-      <div class="e-sub">Select a peer to start an end-to-end encrypted conversation.</div>
+      <div class="e-sub">Encrypted P2P chat via libp2p + WebRTC</div>
       <div class="e-steps">
-        <b>Same machine:</b> open this file in another tab — auto-discovered instantly.<br>
-        <b>Other machines:</b> run <code>node mesh-relay.js</code> on any machine, then enter <code>ws://&lt;host&gt;:8765</code> in the relay box above on both devices.<br>
-        <b>Direct P2P:</b> WebRTC tunnel negotiated automatically.
+        <b>Setup relay (one machine):</b><br>
+        <code>npm install && node mesh-relay.js</code><br><br>
+        <b>Connect both browsers:</b><br>
+        Enter <code>ws://&lt;host&gt;:8765</code> above → Connect<br><br>
+        <b>Chat:</b> Select a peer. WebRTC P2P after first message.
       </div>
     </div>
     <div id="carea">
@@ -300,24 +229,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--mon
           <div id="hname"></div>
           <div id="hstatus"></div>
         </div>
-        <button class="hbtn" onclick="openLog('log')">Info</button>
+        <button class="hbtn" onclick="openLog('peers')">Info</button>
       </div>
-      <div id="sigbar">
-        <div class="sg"><span class="sgl" style="color:var(--blue)">E</span><div class="sgtrack"><div class="sgfill" id="sfe" style="background:var(--blue);width:0%"></div></div><span class="sgv" id="sve">0.00</span></div>
-        <div class="sg"><span class="sgl" style="color:var(--teal)">D</span><div class="sgtrack"><div class="sgfill" id="sfd" style="background:var(--teal);width:0%"></div></div><span class="sgv" id="svd">0.00</span></div>
-        <div class="sg"><span class="sgl" style="color:var(--purple)">P</span><div class="sgtrack"><div class="sgfill" id="sfp" style="background:var(--purple);width:0%"></div></div><span class="sgv" id="svp">0.00</span></div>
-        <span id="transport-badge" class="tb-bc">BC</span>
-      </div>
-      <div id="mwrap">
-        <div class="typing-indicator" id="typing-ind">
-          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-        </div>
-      </div>
+      <div id="mwrap"></div>
       <div id="cinput">
         <div id="inp-wrap">
-          <textarea id="minp" placeholder="iMessage" rows="1" oninput="hi(this)" onkeydown="hk(event)"></textarea>
+          <textarea id="minp" placeholder="Message" rows="1" oninput="hi(this)" onkeydown="hk(event)"></textarea>
         </div>
-        <button id="sbtn" onclick="send()">
+        <button id="sbtn" onclick="sendMsg()">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
@@ -325,616 +244,626 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--mon
   </div>
 </div>
 
-<!-- Log panel -->
 <div id="lpanel">
-  <div id="lphead">
-    <h2 id="lpTitle">Info</h2>
-    <button id="lpclose" onclick="closeLog()">Done</button>
-  </div>
+  <div id="lphead"><h2 id="lpTitle">Info</h2><button id="lpclose" onclick="closeLog()">Done</button></div>
   <div id="ltabs">
-    <div class="ltab act" id="tab-log" onclick="swTab('log')">Event Log</div>
-    <div class="ltab" id="tab-conv" onclick="swTab('conv')">Convergence</div>
-    <div class="ltab" id="tab-trans" onclick="swTab('trans')">Transport</div>
-    <div class="ltab" id="tab-inv" onclick="swTab('inv')">Invariants</div>
+    <div class="ltab act" id="tab-peers"  onclick="swTab('peers')">Peers</div>
+    <div class="ltab"     id="tab-node"   onclick="swTab('node')">Node</div>
+    <div class="ltab"     id="tab-log"    onclick="swTab('log')">Log</div>
   </div>
   <div id="lcontent"></div>
 </div>
 
-<script>
-'use strict';
-// ═══════════════════════════════════════════════════════════════════════ CRYPTO
-const subtle = crypto.subtle;
+<script type="module">
+// ════════════════════════════════════════════════════════════
+// Imports via esm.sh CDN — no build step needed
+// ════════════════════════════════════════════════════════════
+import { createLibp2p }           from 'https://esm.sh/libp2p@2.4.2'
+import { webSockets }             from 'https://esm.sh/@libp2p/websockets@9.0.0'
+import { webRTC }                 from 'https://esm.sh/@libp2p/webrtc@4.1.1'
+import { noise }                  from 'https://esm.sh/@chainsafe/libp2p-noise@16.0.0'
+import { yamux }                  from 'https://esm.sh/@chainsafe/libp2p-yamux@7.0.1'
+import { identify }               from 'https://esm.sh/@libp2p/identify@3.0.0'
+import { circuitRelayTransport }  from 'https://esm.sh/@libp2p/circuit-relay-v2@3.1.0'
+import { gossipsub }              from 'https://esm.sh/@chainsafe/libp2p-gossipsub@14.1.0'
+import { pubsubPeerDiscovery }    from 'https://esm.sh/@libp2p/pubsub-peer-discovery@11.0.0'
+import { multiaddr }              from 'https://esm.sh/@multiformats/multiaddr@12.3.1'
+import * as filters               from 'https://esm.sh/@libp2p/websockets@9.0.0/filters'
 
-async function genECDSA() {
-  const kp = await subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},{extractable:true},['sign','verify']);
-  const pub = await subtle.exportKey('raw', kp.publicKey);
-  const prv = await subtle.exportKey('jwk', kp.privateKey);
-  const hex = Array.from(new Uint8Array(pub)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  return { keypair:kp, pubHex:hex, privJWK:prv, pubRaw:pub };
-}
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+const CHAT_TOPIC = 'sovereign-mesh.chat.v1'
+const DISC_TOPIC = 'sovereign-mesh._peer-discovery._p2p._pubsub'
 
-async function genAESKey() { return subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']); }
-async function exportAESKey(k) {
-  const r = await subtle.exportKey('raw',k);
-  return btoa(String.fromCharCode(...new Uint8Array(r)));
-}
-async function importAESKey(b64) {
-  const r = Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-  return subtle.importKey('raw',r,{name:'AES-GCM'},false,['encrypt','decrypt']);
-}
-async function aesEncrypt(key, plaintext) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await subtle.encrypt({name:'AES-GCM',iv}, key, new TextEncoder().encode(plaintext));
-  return { iv:btoa(String.fromCharCode(...iv)), ct:btoa(String.fromCharCode(...new Uint8Array(ct))) };
-}
-async function aesDecrypt(key, {iv,ct}) {
-  const ivB = Uint8Array.from(atob(iv),c=>c.charCodeAt(0));
-  const ctB = Uint8Array.from(atob(ct),c=>c.charCodeAt(0));
-  const p = await subtle.decrypt({name:'AES-GCM',iv:ivB}, key, ctB);
-  return new TextDecoder().decode(p);
-}
-function uid() { return crypto.randomUUID(); }
+const COLORS = ['#007AFF','#34C759','#AF52DE','#FF3B30','#5AC8FA','#FF9500','#FF6B00','#30B0C7']
+function colorFor(id) { let h=0; for(const c of id) h=(h*31+c.charCodeAt(0))&0xFFFFFFFF; return COLORS[Math.abs(h)%COLORS.length] }
+function iniFor(id, handle) { return (handle||id).slice(0,2).toUpperCase() }
 
-// ═══════════════════════════════════════════════════════════════════ IDENTITY
-let myDID, myPrivJWK, myPubHex, myPubRaw, myHandle;
+let node = null
+let myHandle = ''
+let ACH = null     // active chat peer id string
+let peerMap = {}   // peerId.toString() → { handle, color, msgs:[], transport }
+let eventLog = []
+let ltabCur = 'peers'
 
-async function loadOrCreateIdentity() {
-  const saved = localStorage.getItem('sos-identity-v2');
-  if (saved) {
-    try {
-      const d = JSON.parse(saved);
-      myDID = d.did; myPubHex = d.pubHex; myPrivJWK = d.privJWK;
-      myHandle = d.handle || 'Node·'+myDID.slice(-4);
-      const pubBytes = Uint8Array.from({length:myPubHex.length/2},(_,i)=>parseInt(myPubHex.slice(i*2,i*2+2),16));
-      myPubRaw = pubBytes.buffer;
-      return;
-    } catch {}
+// ════════════════════════════════════════════════════════════
+// CRYPTO (AES-GCM per-peer, negotiated via pubsub)
+// ════════════════════════════════════════════════════════════
+const subtle = crypto.subtle
+async function genAES() { return subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']) }
+async function exportAES(k) { const r=await subtle.exportKey('raw',k); return btoa(String.fromCharCode(...new Uint8Array(r))) }
+async function importAES(b64) { const r=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)); return subtle.importKey('raw',r,{name:'AES-GCM'},false,['encrypt','decrypt']) }
+async function enc(key,txt) { const iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(txt)); return {iv:btoa(String.fromCharCode(...iv)),ct:btoa(String.fromCharCode(...new Uint8Array(ct)))} }
+async function dec(key,{iv,ct}) { const i=Uint8Array.from(atob(iv),c=>c.charCodeAt(0)),c=Uint8Array.from(atob(ct),c=>c.charCodeAt(0)); return new TextDecoder().decode(await subtle.decrypt({name:'AES-GCM',iv:i},key,c)) }
+
+// Shared channel key (all peers on same relay share one key for discovery, per-peer for DMs)
+let sharedKey = null
+async function initKeys() { sharedKey = await genAES() }
+
+// ════════════════════════════════════════════════════════════
+// IDENTITY
+// ════════════════════════════════════════════════════════════
+function loadHandle() {
+  myHandle = localStorage.getItem('mesh-handle') || ''
+  document.getElementById('my-handle-inp').value = myHandle
+}
+function saveHandle(h) { myHandle = h; localStorage.setItem('mesh-handle', h) }
+
+// ════════════════════════════════════════════════════════════
+// LIBP2P NODE
+// ════════════════════════════════════════════════════════════
+async function startNode(relayUrl) {
+  log('sys', `Starting libp2p node → relay ${relayUrl}`)
+  setRelayStatus('connecting', 'Starting node…')
+
+  node = await createLibp2p({
+    transports: [
+      webSockets({ filter: filters.all }),
+      webRTC(),
+      circuitRelayTransport({ discoverRelays: 1 }),
+    ],
+    connectionEncrypters: [noise()],
+    streamMuxers:         [yamux()],
+    services: {
+      identify: identify(),
+      pubsub: gossipsub({
+        allowPublishToZeroTopicPeers: true,
+        emitSelf: false,
+      }),
+    },
+    peerDiscovery: [
+      pubsubPeerDiscovery({
+        interval: 10_000,
+        topics: [DISC_TOPIC],
+      }),
+    ],
+  })
+
+  await node.start()
+
+  const myPid = node.peerId.toString()
+  document.getElementById('my-pid').textContent = myPid.slice(0,8)+'…'+myPid.slice(-4)
+  if (!myHandle) {
+    myHandle = 'Peer·' + myPid.slice(-4)
+    document.getElementById('my-handle-inp').value = myHandle
+    saveHandle(myHandle)
   }
-  const id = await genECDSA();
-  myDID = 'did:sos:' + id.pubHex.slice(0,32);
-  myPubHex = id.pubHex; myPrivJWK = id.privJWK; myPubRaw = id.pubRaw;
-  myHandle = 'Node·'+myDID.slice(-4);
-  saveIdentity();
-}
+  updateMyAvatar()
+  document.title = 'Mesh · ' + myHandle
 
-function saveIdentity() {
-  localStorage.setItem('sos-identity-v2', JSON.stringify({did:myDID, pubHex:myPubHex, privJWK:myPrivJWK, handle:myHandle}));
-}
+  log('sys', `Node started: ${myPid}`)
+  dotOn('dotP2P')
 
-// ═══════════════════════════════════════════════════════════════════════ COLORS
-const COLORS = ['#007AFF','#34C759','#AF52DE','#FF3B30','#5AC8FA','#FF9500','#FF6B00','#30B0C7'];
-function colorFor(did) { let h=0; for(const c of did) h=(h*31+c.charCodeAt(0))&0xFFFFFFFF; return COLORS[Math.abs(h)%COLORS.length]; }
-function iniFor(did) { const p = peerVMs[did]; if(p?.handle) return p.handle.slice(0,2).toUpperCase(); return did.slice(-2).toUpperCase(); }
-
-// ═══════════════════════════════════════════════════════════════════ CGK KERNEL
-let myVM = { id:null, log:[], corrSpace:new Set() };
-let peerVMs = {};
-let state = { channels:{} };
-let ACH = null;
-let THETA = 0.5;
-let globalKey;
-
-function _record(vm, entry) { Object.freeze(entry); vm.log.push(entry); if(entry.correlationId) vm.corrSpace.add(entry.correlationId); }
-
-function reduce(s, entry) {
-  if (entry.type==='CHANNEL_OPEN') return {op:'open',ch:entry.channelId,meta:entry.payload};
-  if (entry.type==='MSG_SENT'||entry.type==='MSG_RECV') return {op:'msg',ch:entry.channelId,m:{id:entry.id,type:entry.type,text:entry.payload.text,ts:entry.ts,from:entry.from,encrypted:entry.payload.encrypted||false}};
-  if (entry.type==='PEER_CONVERGED') return {op:'setconv',ch:entry.channelId};
-  return null;
-}
-
-function _applyDelta(delta) {
-  if (!delta) return;
-  if (delta.op==='open') { if(!state.channels[delta.ch]) state.channels[delta.ch]={messages:[],converged:false,...delta.meta}; }
-  else if (delta.op==='msg') { state.channels[delta.ch]?.messages.push(delta.m); }
-  else if (delta.op==='setconv') { if(state.channels[delta.ch]) state.channels[delta.ch].converged=true; }
-}
-
-function dispatch(vm, event) {
-  const entry = {id:uid(),ts:Date.now(),from:myDID,correlationId:event.correlationId||uid(),causationId:event.causationId||null,...event};
-  _record(vm, entry); _applyDelta(reduce(state, entry)); return entry;
-}
-
-function energy(vm) { const w=vm.log.slice(-100); const p=w.filter(e=>e.type==='MSG_SENT'||e.type==='MSG_RECV').length; return p/Math.max(1,w.length); }
-function decay(vm) { const log=vm.log; if(!log.length) return 0; const lp=[...log].reverse().findIndex(e=>e.type==='MSG_SENT'||e.type==='MSG_RECV'); if(lp===-1) return 0; return 1-(lp/Math.max(1,log.length)); }
-function prioritySignal(vm) { return (energy(vm)*0.5)+(decay(vm)*0.5); }
-function conv(vmA,vmB) { const pA=prioritySignal(vmA),pB=prioritySignal(vmB); let ov=false; for(const id of vmA.corrSpace){if(vmB.corrSpace.has(id)){ov=true;break;}} return {pA,pB,ov,ok:pA>THETA&&pB>THETA&&ov}; }
-
-// ═══════════════════════════════════════════════════════════════ TRANSPORT
-// Layer 1: BroadcastChannel (same-origin tabs)
-const bc = new BroadcastChannel('sovereign-mesh-v4');
-let bcActive = false;
-bc.onmessage = async (ev) => { const msg=ev.data; if(!msg||msg.from===myDID) return; await routeIncoming(msg,'bc'); };
-function bcSend(msg) { bc.postMessage({...msg,from:myDID,ts:Date.now()}); bcActive=true; }
-
-// Layer 2: WebSocket relay (cross-machine)
-let ws=null, wsUrl='', wsConnected=false, wsReconnectTimer=null, wsConnecting=false;
-
-function toggleRelay() {
-  if (wsConnected || wsConnecting) {
-    disconnectRelay();
-  } else {
-    connectRelay();
-  }
-}
-
-function connectRelay(urlOverride) {
-  const url = urlOverride || document.getElementById('relay-inp').value.trim();
-  if (!url) { setRelayStatus('error','Enter a relay URL first'); return; }
-  wsUrl = url;
-  document.getElementById('relay-inp').value = url;
-  if (ws) { ws.onclose=null; ws.close(); ws=null; }
-  wsConnect();
-}
-
-function disconnectRelay() {
-  if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer=null; }
-  if (ws) { ws.onclose=null; ws.close(); ws=null; }
-  wsConnected=false; wsConnecting=false;
-  setRelayStatus('off','Disconnected');
-  document.getElementById('relay-btn').textContent='Connect';
-  document.getElementById('relay-btn').classList.remove('disconnect');
-}
-
-function wsConnect() {
-  if (!wsUrl) return;
-  wsConnecting=true;
-  setRelayStatus('connecting','Connecting…');
-  document.getElementById('relay-btn').textContent='Cancel';
-  document.getElementById('relay-btn').classList.add('disconnect');
-  try { ws = new WebSocket(wsUrl); } catch(e) { setRelayStatus('error','Bad URL'); wsConnecting=false; return; }
-
-  ws.onopen = () => {
-    wsConnected=true; wsConnecting=false;
-    setRelayStatus('connected', wsUrl);
-    document.getElementById('relay-btn').textContent='Disconnect';
-    document.getElementById('relay-btn').classList.add('disconnect');
-    wsSend({type:'REGISTER', did:myDID, pubHex:myPubHex, handle:myHandle});
-    // Save relay URL for next time
-    localStorage.setItem('sos-relay-url', wsUrl);
-  };
-
-  ws.onmessage = async (ev) => {
-    let msg; try { msg=JSON.parse(ev.data); } catch { return; }
-    if (msg.from===myDID) return;
-    if (msg.type==='PEER_LIST') { for(const p of msg.peers) await handlePeerAnnounce(p,'ws'); }
-    else if (msg.type==='PEER_JOIN') { await handlePeerAnnounce(msg,'ws'); }
-    else if (msg.type==='PEER_LEAVE') { handlePeerLeave(msg.did); }
-    else if (msg.type==='WTC_OFFER') { await handleWTCOffer(msg); }
-    else if (msg.type==='WTC_ANSWER') { await handleWTCAnswer(msg); }
-    else if (msg.type==='WTC_ICE') { await handleWTCICE(msg); }
-    else { await routeIncoming(msg,'ws'); }
-  };
-
-  ws.onclose = () => {
-    wsConnected=false; wsConnecting=false;
-    if (wsUrl) {
-      setRelayStatus('error','Lost connection — retrying…');
-      document.getElementById('relay-btn').textContent='Cancel';
-      wsReconnectTimer = setTimeout(()=>wsConnect(), 4000);
-    }
-  };
-
-  ws.onerror = () => {
-    if (!wsConnected) setRelayStatus('error','Could not connect');
-  };
-}
-
-function wsSend(msg) {
-  if (ws&&ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({...msg,from:myDID,ts:Date.now()}));
-}
-
-function setRelayStatus(state, txt) {
-  const dot=document.getElementById('relay-status-dot');
-  const label=document.getElementById('relay-status-txt');
-  const wsDot=document.getElementById('dotWS');
-  dot.className='';
-  if (state==='connected') {
-    dot.classList.add('on');
-    wsDot.className='xdot ws on';
-    document.getElementById('tagWS')&&(document.getElementById('tagWS').className='stag ws');
-  } else if (state==='connecting') {
-    dot.classList.add('warn');
-    wsDot.className='xdot ws warn';
-  } else if (state==='error') {
-    dot.classList.add('err');
-    wsDot.className='xdot ws';
-  } else {
-    wsDot.className='xdot ws';
-  }
-  label.textContent = txt || '';
-}
-
-// Layer 3: WebRTC DataChannel
-const RTC_CONFIG={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
-
-async function initWebRTC(did, isInitiator) {
-  const peer=peerVMs[did];
-  if (!peer||peer.pc) return;
-  const pc=new RTCPeerConnection(RTC_CONFIG);
-  peer.pc=pc;
-
-  pc.onicecandidate=(e)=>{
-    if (!e.candidate) return;
-    const sig={type:'WTC_ICE',to:did,candidate:e.candidate};
-    wsSend(sig); bcSend(sig);
-  };
-
-  pc.onconnectionstatechange=()=>{
-    if (pc.connectionState==='connected') {
-      peer.transport='rtc';
-      document.getElementById('dotRTC').className='xdot rtc on';
-      addSysMsg(did,'⚡ WebRTC P2P tunnel open — relay bypassed');
-      renderContacts(); if(ACH===did) updSig();
-    } else if(['failed','disconnected','closed'].includes(pc.connectionState)) {
-      peer.transport=peer.transport==='rtc'?'ws':peer.transport;
-      peer.pc=null; peer.dc=null;
-      renderContacts();
-    }
-  };
-
-  if (isInitiator) {
-    const dc=pc.createDataChannel('sos',{ordered:true});
-    peer.dc=dc; setupDataChannel(dc,did);
-    const offer=await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    const sig={type:'WTC_OFFER',to:did,sdp:pc.localDescription};
-    wsSend(sig); bcSend(sig);
-  } else {
-    pc.ondatachannel=(e)=>{ peer.dc=e.channel; setupDataChannel(e.channel,did); };
-  }
-}
-
-function setupDataChannel(dc,did) {
-  dc.onopen=()=>{ if(ACH===did) updSig(); };
-  dc.onmessage=async(e)=>{ let msg; try{msg=JSON.parse(e.data);}catch{return;} await routeIncoming(msg,'rtc'); };
-  dc.onerror=(e)=>console.error('[dc]',e);
-}
-
-async function handleWTCOffer(msg) {
-  const peer=peerVMs[msg.from]; if(!peer) return;
-  if (!peer.pc) await initWebRTC(msg.from,false);
-  await peer.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-  const answer=await peer.pc.createAnswer();
-  await peer.pc.setLocalDescription(answer);
-  const sig={type:'WTC_ANSWER',to:msg.from,sdp:peer.pc.localDescription};
-  wsSend(sig); bcSend(sig);
-}
-async function handleWTCAnswer(msg) { const peer=peerVMs[msg.from]; if(!peer?.pc) return; await peer.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp)); }
-async function handleWTCICE(msg) { const peer=peerVMs[msg.from]; if(!peer?.pc) return; try{await peer.pc.addIceCandidate(new RTCIceCandidate(msg.candidate));}catch{} }
-
-function meshSend(msg,toDID) {
-  const peer=peerVMs[toDID];
-  const payload=JSON.stringify({...msg,from:myDID,ts:Date.now()});
-  if (peer?.dc?.readyState==='open') { peer.dc.send(payload); return 'rtc'; }
-  if (wsConnected) { wsSend({...msg,to:toDID}); return 'ws'; }
-  bcSend({...msg,to:toDID}); return 'bc';
-}
-
-async function routeIncoming(msg, transport) {
-  if (!msg||msg.from===myDID) return;
-  if (msg.type==='PEER_ANNOUNCE'||msg.type==='PEER_ACK') await handlePeerAnnounce(msg,transport);
-  else if (msg.type==='MSG_ENVELOPE'&&msg.to===myDID) await handleIncoming(msg,transport);
-  else if (msg.type==='KEY_OFFER'&&msg.to===myDID) await handleKeyOffer(msg);
-  else if (msg.type==='KEY_ACCEPT'&&msg.to===myDID) await handleKeyAccept(msg);
-}
-
-// ═══════════════════════════════════════════════════════════════ PEER LIFECYCLE
-async function handlePeerAnnounce(msg, transport) {
-  const did=msg.did; if (!did||did===myDID) return;
-  const isNew=!peerVMs[did];
-  if (isNew) {
-    const pubBytes=Uint8Array.from({length:msg.pubHex.length/2},(_,i)=>parseInt(msg.pubHex.slice(i*2,i*2+2),16));
-    const color=colorFor(did);
-    const handle=msg.handle||'Peer·'+did.slice(-4);
-    peerVMs[did]={id:did,log:[],corrSpace:new Set(),pubRaw:pubBytes.buffer,pubHex:msg.pubHex,handle,color,aesKey:null,transport:transport||'bc',pc:null,dc:null};
-    dispatch(myVM,{type:'CHANNEL_OPEN',channelId:did,payload:{name:handle,did,color}});
-    const ack={type:'PEER_ACK',did:myDID,pubHex:myPubHex,handle:myHandle};
-    bcSend(ack); wsSend({...ack,broadcast:true});
-    const keyB64=await exportAESKey(globalKey);
-    const offer={type:'KEY_OFFER',to:did,keyB64};
-    meshSend(offer,did); bcSend({...offer,from:myDID});
-    if (transport==='ws'&&!peerVMs[did]?.pc) setTimeout(()=>initWebRTC(did,myDID>did),300);
-    renderContacts();
-    addSysMsg(did,`Connected via ${transport?.toUpperCase()} · ${handle}`);
-  } else {
-    if (msg.handle && peerVMs[did]) peerVMs[did].handle=msg.handle;
-    if (transport&&transport!=='rtc') peerVMs[did].transport=peerVMs[did].transport==='rtc'?'rtc':transport;
-  }
-}
-
-function handlePeerLeave(did) {
-  if (!peerVMs[did]) return;
-  addSysMsg(did,'Peer left the relay');
-  peerVMs[did].transport='bc';
-  renderContacts();
-}
-
-async function handleKeyOffer(msg) {
-  const peer=peerVMs[msg.from]; if(!peer||peer.aesKey) return;
-  peer.aesKey=await importAESKey(msg.keyB64);
-  const accept={type:'KEY_ACCEPT',to:msg.from,keyB64:msg.keyB64};
-  meshSend(accept,msg.from); bcSend({...accept,from:myDID});
-  addSysMsg(msg.from,'🔐 End-to-end encrypted');
-  renderContacts();
-}
-
-async function handleKeyAccept(msg) {
-  const peer=peerVMs[msg.from];
-  if (peer&&!peer.aesKey) { peer.aesKey=await importAESKey(msg.keyB64); addSysMsg(msg.from,'🔐 End-to-end encrypted'); renderContacts(); }
-}
-
-async function handleIncoming(msg, transport) {
-  const peer=peerVMs[msg.from]; if(!peer) return;
-  let text='[encrypted]';
-  if (peer.aesKey) { try{text=await aesDecrypt(peer.aesKey,msg.envelope);}catch{text='[decrypt failed]';} }
-  const cid=msg.correlationId||uid();
-  const entry={type:'MSG_RECV',channelId:msg.from,correlationId:cid,causationId:msg.causationId||null,from:msg.from,payload:{text,encrypted:true,transport}};
-  dispatch(myVM,entry); _record(peer,{...entry,id:uid(),ts:Date.now()}); peer.corrSpace.add(cid);
-  const c=conv(myVM,peer);
-  if (c.ok&&!state.channels[msg.from]?.converged) dispatch(myVM,{type:'PEER_CONVERGED',channelId:msg.from,correlationId:cid});
-  renderMsgs(); renderContacts(); updSig();
-}
-
-function announce() {
-  const ann={type:'PEER_ANNOUNCE',did:myDID,pubHex:myPubHex,handle:myHandle};
-  bcSend(ann); wsSend({...ann,broadcast:true});
-}
-
-// ═══════════════════════════════════════════════════════════════════════ SEND
-async function send() {
-  const inp=document.getElementById('minp');
-  const text=inp.value.trim();
-  if (!text||!ACH) return;
-  inp.value=''; inp.style.height='auto';
-  document.getElementById('sbtn').classList.remove('active');
-  const peer=peerVMs[ACH]; if(!peer) return;
-  const cid=uid();
-  let envelope=null,encrypted=false;
-  if (peer.aesKey) { envelope=await aesEncrypt(peer.aesKey,text); encrypted=true; }
-  const entry=dispatch(myVM,{type:'MSG_SENT',channelId:ACH,correlationId:cid,from:myDID,payload:{text,encrypted}});
-  _record(peer,{...entry,id:uid(),ts:Date.now()}); peer.corrSpace.add(cid);
-  const transport=meshSend({type:'MSG_ENVELOPE',to:ACH,envelope:envelope||{iv:'',ct:''},correlationId:cid,causationId:entry.id},ACH);
-  if (transport!=='bc') bcSend({type:'MSG_ENVELOPE',to:ACH,envelope:envelope||{iv:'',ct:''},correlationId:cid,causationId:entry.id,from:myDID});
-  const c=conv(myVM,peer);
-  if (c.ok&&!state.channels[ACH]?.converged) dispatch(myVM,{type:'PEER_CONVERGED',channelId:ACH,correlationId:cid});
-  renderMsgs(); renderContacts(); updSig();
-}
-
-// ═══════════════════════════════════════════════════════════════════════ RENDER
-function renderContacts() {
-  const el=document.getElementById('peers');
-  const keys=Object.keys(peerVMs);
-  document.getElementById('pcount').textContent=keys.length?keys.length+' peer'+(keys.length===1?'':'s'):'';
-  if (!keys.length) {
-    el.innerHTML='<div id="no-peers"><strong>No peers yet</strong>Open this page in another tab for local chat, or connect a relay server to reach other machines.</div>';
-    return;
-  }
-  el.innerHTML='';
-  keys.forEach(did=>{
-    const peer=peerVMs[did];
-    const ch=state.channels[did]||{};
-    const last=ch.messages?.filter(m=>!m._sys).slice(-1)[0];
-    const trans=peer.transport||'bc';
-    const d=document.createElement('div');
-    d.className=`pi${ACH===did?' active':''}`;
-    d.onclick=()=>openCh(did);
-    const ini=peer.handle?peer.handle.slice(0,2).toUpperCase():did.slice(-2).toUpperCase();
-    const encCls=peer.aesKey?'enc':'unenc';
-    const badgeClass=trans==='rtc'?'rtc':trans==='ws'?'ws':'bc';
-    const previewTxt=last?escHtml(last.text.slice(0,40)):(peer.aesKey?'Encrypted channel ready':'Exchanging keys…');
-    const timeTxt=last?fmtTime(last.ts):'';
-    d.innerHTML=`
-      <div class="av ${encCls}" style="background:${peer.color}">${ini}</div>
-      <div class="pm">
-        <div class="pn">${escHtml(peer.handle)}</div>
-        <div class="pp">${previewTxt}</div>
-      </div>
-      <div class="pr">
-        <span class="pt">${timeTxt}</span>
-        <span class="pc-badge ${badgeClass}">${trans.toUpperCase()}</span>
-      </div>`;
-    el.appendChild(d);
-  });
-}
-
-function fmtTime(ts) {
-  const d=new Date(ts), now=new Date();
-  if (d.toDateString()===now.toDateString()) return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  return d.toLocaleDateString([],{month:'short',day:'numeric'});
-}
-
-function openCh(did) {
-  ACH=did;
-  const peer=peerVMs[did]; if(!peer) return;
-  document.getElementById('empty').style.display='none';
-  document.getElementById('carea').style.display='flex';
-  const hav=document.getElementById('hav');
-  hav.textContent=peer.handle?peer.handle.slice(0,2).toUpperCase():did.slice(-2).toUpperCase();
-  hav.style.background=peer.color;
-  document.getElementById('hname').textContent=peer.handle;
-  const trans=peer.transport||'bc';
-  document.getElementById('hstatus').textContent=peer.aesKey?`🔐 Encrypted · ${trans.toUpperCase()}`:`Connecting…`;
-  renderMsgs(); renderContacts(); updSig();
-  document.getElementById('minp').focus();
-}
-
-function renderMsgs() {
-  if (!ACH) return;
-  const wrap=document.getElementById('mwrap');
-  const ch=state.channels[ACH]; if(!ch) return;
-  const peer=peerVMs[ACH];
-  const atBottom=wrap.scrollHeight-wrap.scrollTop-wrap.clientHeight<80;
-  wrap.innerHTML='';
-  let prevSent=null;
-  ch.messages.forEach((m,i)=>{
-    if (m._sys) {
-      const r=document.createElement('div');
-      r.className='sys-msg'; r.textContent=m.text;
-      wrap.appendChild(r); prevSent=null; return;
-    }
-    const sent=m.type==='MSG_SENT';
-    const sameSender=prevSent===sent;
-    if (!sameSender&&prevSent!==null) { const g=document.createElement('div'); g.className='msg-group-gap'; wrap.appendChild(g); }
-    const r=document.createElement('div');
-    r.className=`mr ${sent?'sent':'recv'}`;
-    r.innerHTML=`<div class="bb ${sent?'sent':'recv'}">${escHtml(m.text)}</div><div class="mt">${fmtTime(m.ts)}${m.encrypted?'<span class="enc-dot" title="Encrypted"></span>':''}</div>`;
-    wrap.appendChild(r);
-    prevSent=sent;
-  });
-  // Append typing indicator at end
-  const ti=document.getElementById('typing-ind');
-  wrap.appendChild(ti);
-  if (atBottom) wrap.scrollTop=wrap.scrollHeight;
-}
-
-function addSysMsg(did, text) {
-  if (!state.channels[did]) return;
-  state.channels[did].messages.push({id:uid(),type:'SYS',text,ts:Date.now(),_sys:true});
-  if (ACH===did) renderMsgs();
-}
-
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function updSig() {
-  if (!ACH) return;
-  const peer=peerVMs[ACH]; if(!peer) return;
-  const e=energy(myVM),d=decay(myVM),p=prioritySignal(myVM);
-  document.getElementById('sfe').style.width=(e*100).toFixed(1)+'%';
-  document.getElementById('sfd').style.width=(d*100).toFixed(1)+'%';
-  document.getElementById('sfp').style.width=(p*100).toFixed(1)+'%';
-  document.getElementById('sve').textContent=e.toFixed(2);
-  document.getElementById('svd').textContent=d.toFixed(2);
-  document.getElementById('svp').textContent=p.toFixed(2);
-  const tb=document.getElementById('transport-badge');
-  const trans=peer.transport||'bc';
-  tb.textContent=trans.toUpperCase();
-  tb.className='';
-  tb.id='transport-badge';
-  tb.classList.add(trans==='rtc'?'tb-rtc':trans==='ws'?'tb-ws':'tb-bc');
-  // Update header status
-  if (ACH) document.getElementById('hstatus').textContent=peer.aesKey?`🔐 Encrypted · ${trans.toUpperCase()}`:`Connecting…`;
-  if (ltabCur==='conv') renderConv();
-  if (ltabCur==='log') renderLogPanel();
-  if (ltabCur==='trans') renderTransport();
-}
-
-// ═══════════════════════════════════════════════════════════════════ LOG PANEL
-let ltabCur='log';
-function openLog(t) { document.getElementById('lpanel').classList.add('open'); swTab(t||ltabCur); }
-function closeLog() { document.getElementById('lpanel').classList.remove('open'); }
-function swTab(t) {
-  ltabCur=t;
-  ['log','conv','trans','inv'].forEach(x=>document.getElementById('tab-'+x)?.classList.toggle('act',x===t));
-  if(t==='log') renderLogPanel();
-  else if(t==='conv') renderConv();
-  else if(t==='trans') renderTransport();
-  else renderInvariants();
-}
-
-function renderLogPanel() {
-  const log=ACH?myVM.log.filter(e=>e.channelId===ACH||!e.channelId):myVM.log;
-  document.getElementById('lcontent').innerHTML=log.slice(-100).reverse().map(e=>`
-    <div class="log-entry"><span class="ets">${new Date(e.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span> <span class="etype">${e.type}</span><br><span class="ecid">corr:${e.correlationId?.slice(0,18)}…</span>${e.causationId?`<br><span class="ecid" style="color:var(--teal)">cause:${e.causationId.slice(0,18)}…</span>`:''} ${e.payload?.text?`<br>${escHtml(String(e.payload.text).slice(0,60))}`:''}${e.payload?.transport?` <span style="color:var(--purple)">via ${e.payload.transport}</span>`:''}</div>`).join('');
-}
-
-function renderConv() {
-  const el=document.getElementById('lcontent');
-  if (!ACH) { el.innerHTML='<div style="color:var(--txt3);padding:8px">Select a peer first.</div>'; return; }
-  const peer=peerVMs[ACH]; if(!peer) return;
-  const c=conv(myVM,peer);
-  el.innerHTML=`<div style="padding:4px 0">${row('θ threshold',THETA.toFixed(2))}${row('My priority',c.pA.toFixed(4))}${row('Peer priority',c.pB.toFixed(4))}${row('pA > θ',c.pA>THETA,true)}${row('pB > θ',c.pB>THETA,true)}${row('corrSpace overlap',c.ov,true)}${row('Result',c.ok?'CONVERGED':'NOT YET',c.ok)}${row('My log size',myVM.log.length)}${row('Peer log size',peer.log.length)}${row('E2E key',peer.aesKey?'AES-256-GCM':'pending',!!peer.aesKey)}${row('Transport',(peer.transport||'bc').toUpperCase())}${row('WebRTC PC',peer.pc?.connectionState||'none')}${row('DataChannel',peer.dc?.readyState||'none')}</div><div id="cstate"><div style="width:8px;height:8px;border-radius:50%;background:${c.ok?'var(--green)':'var(--amber)'};flex-shrink:0"></div><span style="font-size:11px;color:${c.ok?'var(--green)':'var(--amber)'}">${c.ok?'Converged · event routing active':'Approaching convergence'}</span></div>`;
-}
-
-function row(k,v,bool) {
-  let cls=''; if(bool===true)cls='ok'; else if(bool===false)cls='no';
-  return `<div class="crow"><span class="ckey">${k}</span><span class="cval ${cls}">${escHtml(String(typeof v==='boolean'?v?'true':'false':v))}</span></div>`;
-}
-
-function renderTransport() {
-  const ps=Object.entries(peerVMs);
-  document.getElementById('lcontent').innerHTML=`${row('BroadcastChannel','active',true)}${row('WebSocket relay',wsConnected?wsUrl:'disconnected',wsConnected)}${row('STUN','stun.l.google.com:19302',true)}<div style="margin-top:10px;margin-bottom:4px;color:var(--txt3);font-size:10px">Per-peer</div>${ps.length?ps.map(([did,p])=>`<div class="log-entry"><span style="color:var(--txt2)">${escHtml(p.handle)}</span> · <span style="color:${p.transport==='rtc'?'var(--purple)':p.transport==='ws'?'var(--green)':'var(--blue)'}">  ${(p.transport||'bc').toUpperCase()}</span> · PC:${p.pc?.connectionState||'—'} DC:${p.dc?.readyState||'—'}</div>`).join(''):'<div style="color:var(--txt3)">No peers</div>'}`;
-}
-
-const INVARIANTS=['Replay(state)==Live(state)','No hidden mutable state outside the log','All outputs traceable to explicit events','Signals are functions of history only','Same input sequence → identical execution','Same event log → identical emitted events','Every event has a deterministic total order','Reducers are pure (state,event)→delta','Schedulers are pure functions of history','Signal functions are pure functions of history'];
-function renderInvariants() {
-  document.getElementById('lcontent').innerHTML=INVARIANTS.map((inv,i)=>`<div class="log-entry"><span class="etype">#${i+1}</span> <span style="color:var(--green)">✓</span> ${inv}</div>`).join('');
-}
-
-// ══════════════════════════════════════════════════════════════════════ INVITE
-async function copyInvite() {
-  const keyB64=await exportAESKey(globalKey);
-  const relayUrl=wsUrl||'ws://localhost:8765';
-  const invite=`sovereign-mesh://relay=${encodeURIComponent(relayUrl)}&key=${encodeURIComponent(keyB64)}&node=${myDID}`;
+  // Connect to relay
   try {
-    await navigator.clipboard.writeText(invite);
-    document.getElementById('invite-bar').innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;flex-shrink:0"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Invite copied — share with peers on other machines';
-    setTimeout(()=>{ document.getElementById('invite-bar').innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;opacity:.7"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg> Share encrypted invite link'; },3000);
+    setRelayStatus('connecting', 'Dialing relay…')
+    await node.dial(multiaddr(relayUrl.replace('ws://', '/ip4/').replace(/\/\/([^:]+):(\d+)/, (_, h, p) => `${h}/tcp/${p}/ws`)))
+    // Actually parse the multiaddr properly:
+  } catch(e) {
+    // Will be handled via peer events if relay WS multiaddr is found via identify
+  }
+
+  // Dial relay as multiaddr
+  try {
+    const parts = relayUrl.replace(/^ws:\/\//, '').split(':')
+    const ip = parts[0], port = parts[1] || '8765'
+    const ma = multiaddr(`/ip4/${ip}/tcp/${port}/ws`)
+    log('sys', `Dialing ${ma}`)
+    const conn = await node.dial(ma)
+    log('sys', `Connected to relay peer: ${conn.remotePeer.toString()}`)
+    setRelayStatus('connected', relayUrl)
+    dotOn('dotWS')
+    localStorage.setItem('mesh-relay-url', relayUrl)
+  } catch(e) {
+    setRelayStatus('error', 'Dial failed: ' + e.message)
+    log('err', `Dial failed: ${e.message}`)
+    return
+  }
+
+  // Subscribe to chat topic
+  node.services.pubsub.subscribe(CHAT_TOPIC)
+  node.services.pubsub.subscribe(DISC_TOPIC)
+
+  // Announce ourselves every 8s
+  announce()
+  const annTimer = setInterval(announce, 8000)
+
+  // ── EVENTS ──────────────────────────────────────────────
+  node.addEventListener('peer:connect', (evt) => {
+    const pid = evt.detail.toString()
+    log('sys', `peer:connect ${pid.slice(0,12)}…`)
+    dotOn('dotP2P')
+    renderPeers()
+  })
+
+  node.addEventListener('peer:disconnect', (evt) => {
+    const pid = evt.detail.toString()
+    log('sys', `peer:disconnect ${pid.slice(0,12)}…`)
+    if (peerMap[pid]) {
+      addSysMsg(pid, 'Peer disconnected')
+      peerMap[pid].online = false
+      renderPeers()
+    }
+  })
+
+  node.addEventListener('peer:discovery', async (evt) => {
+    const pid = evt.detail.id.toString()
+    if (pid === node.peerId.toString()) return
+    log('sys', `peer:discovery ${pid.slice(0,12)}…`)
+    if (!peerMap[pid]) {
+      ensurePeer(pid, {})
+    }
+  })
+
+  node.services.pubsub.addEventListener('message', async (evt) => {
+    const topic = evt.detail.topic
+    let payload
+    try { payload = JSON.parse(new TextDecoder().decode(evt.detail.data)) } catch { return }
+    if (payload.from === node.peerId.toString()) return
+
+    if (topic === DISC_TOPIC || payload.type === 'ANNOUNCE') {
+      handleAnnounce(payload)
+    } else if (topic === CHAT_TOPIC) {
+      if (payload.type === 'KEY_OFFER') {
+        handleKeyOffer(payload)
+      } else if (payload.type === 'KEY_ACCEPT') {
+        handleKeyAccept(payload)
+      } else if (payload.type === 'MSG' && payload.to === node.peerId.toString()) {
+        handleMsg(payload)
+      }
+    }
+  })
+
+  // Also handle via connection custom protocol for direct P2P after WebRTC
+  node.handle('/mesh/1.0.0', async ({ stream, connection }) => {
+    const pid = connection.remotePeer.toString()
+    log('sys', `Direct stream from ${pid.slice(0,12)}…`)
+    dotOn('dotRTC')
+    if (peerMap[pid]) peerMap[pid].transport = 'rtc'
+    renderPeers()
+    // Read messages from stream
+    try {
+      for await (const chunk of stream.source) {
+        let payload
+        try { payload = JSON.parse(new TextDecoder().decode(chunk.subarray())) } catch { continue }
+        payload.from = pid
+        if (payload.type === 'MSG') await handleMsg(payload)
+      }
+    } catch {}
+  })
+
+  renderPeers()
+}
+
+async function stopNode() {
+  if (!node) return
+  await node.stop()
+  node = null
+  dotOff('dotWS'); dotOff('dotP2P'); dotOff('dotRTC')
+  setRelayStatus('off', 'Disconnected')
+  peerMap = {}
+  renderPeers()
+  log('sys', 'Node stopped')
+}
+
+// ════════════════════════════════════════════════════════════
+// ANNOUNCE
+// ════════════════════════════════════════════════════════════
+async function announce() {
+  if (!node) return
+  const payload = {
+    type: 'ANNOUNCE',
+    from: node.peerId.toString(),
+    handle: myHandle,
+    addrs: node.getMultiaddrs().map(a=>a.toString()),
+    ts: Date.now()
+  }
+  try {
+    await node.services.pubsub.publish(CHAT_TOPIC, new TextEncoder().encode(JSON.stringify(payload)))
   } catch {}
 }
 
-// ═══════════════════════════════════════════════════════════════════════ INPUT
-function hk(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} }
-function hi(el) {
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,120)+'px';
-  document.getElementById('sbtn').classList.toggle('active',el.value.trim().length>0);
+function handleAnnounce(payload) {
+  const pid = payload.from
+  if (!pid || pid === node?.peerId.toString()) return
+  const isNew = !peerMap[pid]
+  ensurePeer(pid, { handle: payload.handle, addrs: payload.addrs })
+  if (isNew) {
+    log('sys', `Discovered: ${payload.handle || pid.slice(0,8)} via announce`)
+    addSysMsg(pid, `Connected · ${peerMap[pid].transport?.toUpperCase() || 'P2P'}`)
+    // Send key offer if we don't have one yet
+    offerKey(pid)
+    renderPeers()
+  }
 }
 
-// Handle name editing
-document.getElementById('my-handle-inp').addEventListener('change', function() {
-  myHandle=this.value.trim()||'Node·'+myDID.slice(-4);
-  this.value=myHandle;
-  saveIdentity();
-  announce(); // re-broadcast new name
-});
+// ════════════════════════════════════════════════════════════
+// KEY EXCHANGE
+// ════════════════════════════════════════════════════════════
+async function offerKey(toPid) {
+  if (!node || !sharedKey) return
+  const peer = peerMap[toPid]
+  if (!peer || peer.aesKey) return
+  const keyB64 = await exportAES(sharedKey)
+  const payload = { type:'KEY_OFFER', to:toPid, from:node.peerId.toString(), keyB64 }
+  await publish(payload)
+}
 
-// Relay enter key
-document.getElementById('relay-inp').addEventListener('keydown',e=>{ if(e.key==='Enter') toggleRelay(); });
+async function handleKeyOffer(payload) {
+  if (payload.to !== node?.peerId.toString()) return
+  const peer = peerMap[payload.from]
+  if (!peer || peer.aesKey) return
+  peer.aesKey = await importAES(payload.keyB64)
+  addSysMsg(payload.from, '🔐 End-to-end encrypted')
+  renderPeers()
+  // Accept
+  const keyB64 = await exportAES(peer.aesKey)
+  await publish({ type:'KEY_ACCEPT', to:payload.from, from:node.peerId.toString(), keyB64 })
+}
 
-// Click outside log panel to close
-document.addEventListener('click', (e) => {
-  const panel=document.getElementById('lpanel');
-  if (panel.classList.contains('open')&&!panel.contains(e.target)&&!e.target.closest('.hbtn')) closeLog();
-});
+async function handleKeyAccept(payload) {
+  if (payload.to !== node?.peerId.toString()) return
+  const peer = peerMap[payload.from]
+  if (peer && !peer.aesKey) {
+    peer.aesKey = await importAES(payload.keyB64)
+    addSysMsg(payload.from, '🔐 End-to-end encrypted')
+    renderPeers()
+  }
+}
 
-// ═══════════════════════════════════════════════════════════════════════ BOOT
-(async () => {
-  await loadOrCreateIdentity();
-  myVM.id=myDID;
-  globalKey=await genAESKey();
+// ════════════════════════════════════════════════════════════
+// MESSAGING
+// ════════════════════════════════════════════════════════════
+async function publish(obj) {
+  if (!node) return
+  try {
+    await node.services.pubsub.publish(CHAT_TOPIC, new TextEncoder().encode(JSON.stringify(obj)))
+  } catch(e) { log('err', 'publish failed: '+e.message) }
+}
 
-  // Update UI
-  document.getElementById('myDIDel').textContent=myDID.slice(0,12)+'…'+myDID.slice(-6);
-  document.getElementById('my-handle-inp').value=myHandle;
-  document.title='Mesh · '+myHandle;
+async function sendMsg() {
+  const inp = document.getElementById('minp')
+  const text = inp.value.trim()
+  if (!text || !ACH || !node) return
+  inp.value = ''; inp.style.height = 'auto'
+  document.getElementById('sbtn').classList.remove('active')
 
-  // My avatar
-  const myAv=document.getElementById('my-av');
-  myAv.textContent=myHandle.slice(0,2).toUpperCase();
-  myAv.style.background=colorFor(myDID);
+  const peer = peerMap[ACH]
+  if (!peer) return
 
-  // BC always active
-  document.getElementById('dotBC').className='xdot bc on';
-
-  // Auto-connect relay from URL param or saved URL
-  const params=new URLSearchParams(location.search);
-  const relayParam=params.get('relay');
-  const savedRelay=localStorage.getItem('sos-relay-url');
-  const autoUrl=relayParam||savedRelay||'';
-  if (autoUrl) {
-    document.getElementById('relay-inp').value=autoUrl;
-    connectRelay(autoUrl);
+  let envelope = null
+  if (peer.aesKey) {
+    try { envelope = await enc(peer.aesKey, text) } catch {}
   }
 
-  announce();
-  setInterval(announce, 8000);
-  setInterval(()=>{ if(ACH){updSig();} renderContacts(); }, 1500);
+  const msg = { id: crypto.randomUUID(), ts: Date.now(), type:'MSG', to:ACH, from:node.peerId.toString(), envelope: envelope||null, plain: envelope?null:text }
+  peer.msgs.push({ sent:true, text, ts:msg.ts, encrypted:!!envelope })
+  renderMsgs()
+  renderPeers()
 
-  console.log('🔵 Mesh node:', myDID, '| Handle:', myHandle);
-  console.log('   BroadcastChannel ✓ | WebSocket (connect relay) | WebRTC (auto-negotiated)');
-  console.log('   Cross-machine: run "node mesh-relay.js" and enter the WS URL in the sidebar');
-})();
+  // Try direct stream first (WebRTC), fall back to pubsub
+  let sent = false
+  if (peer.conn) {
+    try {
+      const stream = await peer.conn.newStream('/mesh/1.0.0')
+      const data = new TextEncoder().encode(JSON.stringify(msg))
+      await stream.sink([data])
+      sent = true
+      peer.transport = 'rtc'
+      dotOn('dotRTC')
+    } catch { peer.conn = null }
+  }
+  if (!sent) {
+    await publish(msg)
+  }
+  renderPeers()
+}
+
+async function handleMsg(payload) {
+  const pid = payload.from
+  ensurePeer(pid, {})
+  const peer = peerMap[pid]
+
+  let text = '[encrypted]'
+  if (payload.envelope && peer.aesKey) {
+    try { text = await dec(peer.aesKey, payload.envelope) } catch { text = '[decrypt error]' }
+  } else if (payload.plain) {
+    text = payload.plain
+  }
+
+  peer.msgs.push({ sent:false, text, ts:payload.ts||Date.now(), encrypted:!!payload.envelope })
+  if (ACH === pid) renderMsgs()
+  renderPeers()
+  log('msg', `← ${peer.handle}: ${text.slice(0,40)}`)
+}
+
+// ════════════════════════════════════════════════════════════
+// PEER MAP
+// ════════════════════════════════════════════════════════════
+function ensurePeer(pid, { handle, addrs } = {}) {
+  if (!peerMap[pid]) {
+    peerMap[pid] = {
+      id: pid,
+      handle: handle || ('Peer·'+pid.slice(-4)),
+      color: colorFor(pid),
+      msgs: [],
+      aesKey: null,
+      transport: 'ws',
+      online: true,
+      conn: null,
+    }
+  } else {
+    if (handle) peerMap[pid].handle = handle
+    peerMap[pid].online = true
+  }
+  // Try to establish direct connection via WebRTC
+  if (node && !peerMap[pid].conn && addrs?.length) {
+    tryDirectConnect(pid, addrs)
+  }
+}
+
+async function tryDirectConnect(pid, addrs) {
+  if (!node || peerMap[pid].conn) return
+  // Look for circuit relay address
+  const circuitAddr = addrs?.find(a => a.includes('/p2p-circuit/'))
+  if (!circuitAddr) return
+  try {
+    const conn = await node.dial(multiaddr(circuitAddr))
+    if (peerMap[pid]) {
+      peerMap[pid].conn = conn
+      peerMap[pid].transport = 'rtc'
+      dotOn('dotRTC')
+      renderPeers()
+      log('sys', `WebRTC P2P established with ${pid.slice(0,8)}…`)
+    }
+  } catch {}
+}
+
+// ════════════════════════════════════════════════════════════
+// UI — RELAY TOGGLE
+// ════════════════════════════════════════════════════════════
+let relayConnected = false
+
+window.toggleRelay = async function() {
+  if (relayConnected || node) {
+    relayConnected = false
+    document.getElementById('relay-btn').textContent = 'Connect'
+    document.getElementById('relay-btn').classList.remove('disc')
+    await stopNode()
+  } else {
+    const url = document.getElementById('relay-inp').value.trim()
+    if (!url) { setRelayStatus('error', 'Enter a relay URL'); return }
+    relayConnected = true
+    document.getElementById('relay-btn').textContent = 'Disconnect'
+    document.getElementById('relay-btn').classList.add('disc')
+    await startNode(url)
+  }
+}
+
+function setRelayStatus(state, txt) {
+  const dot = document.getElementById('rs-dot')
+  dot.className = state === 'connected' ? 'on' : state === 'connecting' ? 'warn' : state === 'error' ? 'err' : ''
+  document.getElementById('rs-txt').textContent = txt || ''
+}
+
+function dotOn(id)  { document.getElementById(id).classList.add('on') }
+function dotOff(id) { document.getElementById(id).classList.remove('on') }
+
+// ════════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════════
+function renderPeers() {
+  const el = document.getElementById('peers')
+  const keys = Object.keys(peerMap)
+  document.getElementById('pcount').textContent = keys.length ? keys.length + ' peer' + (keys.length===1?'':'s') : ''
+  if (!keys.length) {
+    el.innerHTML = '<div id="no-peers"><strong>No peers yet</strong>Open in another tab, or connect a relay to reach other machines.</div>'
+    return
+  }
+  el.innerHTML = ''
+  keys.forEach(pid => {
+    const peer = peerMap[pid]
+    const last = peer.msgs.slice(-1)[0]
+    const trans = peer.transport || 'ws'
+    const d = document.createElement('div')
+    d.className = 'pi' + (ACH===pid?' active':'')
+    d.onclick = () => openCh(pid)
+    const ini = iniFor(pid, peer.handle)
+    d.innerHTML = `
+      <div class="av ${peer.aesKey?'enc':''}" style="background:${peer.color}">${ini}</div>
+      <div class="pm">
+        <div class="pn">${escHtml(peer.handle)}</div>
+        <div class="pp">${last ? escHtml(last.text.slice(0,40)) : (peer.aesKey ? 'Encrypted' : 'Connecting…')}</div>
+      </div>
+      <div class="pr">
+        <span class="pt">${last?fmtTime(last.ts):''}</span>
+        <span class="pc-b ${trans}">${trans.toUpperCase()}</span>
+      </div>`
+    el.appendChild(d)
+  })
+}
+
+function openCh(pid) {
+  ACH = pid
+  const peer = peerMap[pid]
+  document.getElementById('empty').style.display = 'none'
+  document.getElementById('carea').style.display = 'flex'
+  const hav = document.getElementById('hav')
+  hav.textContent = iniFor(pid, peer.handle)
+  hav.style.background = peer.color
+  document.getElementById('hname').textContent = peer.handle
+  document.getElementById('hstatus').textContent = peer.aesKey ? '🔐 Encrypted · ' + (peer.transport||'ws').toUpperCase() : 'Connecting…'
+  renderMsgs()
+  renderPeers()
+  document.getElementById('minp').focus()
+}
+
+function renderMsgs() {
+  if (!ACH) return
+  const wrap = document.getElementById('mwrap')
+  const peer = peerMap[ACH]
+  if (!peer) return
+  const atBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80
+  wrap.innerHTML = ''
+  let prevSent = null
+  peer.msgs.forEach(m => {
+    if (m._sys) {
+      const r = document.createElement('div')
+      r.className = 'sys-msg'; r.textContent = m.text
+      wrap.appendChild(r); prevSent = null; return
+    }
+    if (prevSent !== null && prevSent !== m.sent) {
+      const g = document.createElement('div'); g.className='msg-gap'; wrap.appendChild(g)
+    }
+    const r = document.createElement('div')
+    r.className = 'mr ' + (m.sent?'sent':'recv')
+    r.innerHTML = `<div class="bb ${m.sent?'sent':'recv'}">${escHtml(m.text)}</div><div class="mt">${fmtTime(m.ts)}${m.encrypted?'<span class="enc-dot"></span>':''}</div>`
+    wrap.appendChild(r)
+    prevSent = m.sent
+  })
+  if (atBottom) wrap.scrollTop = wrap.scrollHeight
+}
+
+function addSysMsg(pid, text) {
+  if (!peerMap[pid]) return
+  peerMap[pid].msgs.push({ _sys:true, text, ts:Date.now() })
+  if (ACH === pid) renderMsgs()
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function fmtTime(ts) { const d=new Date(ts),n=new Date(); return d.toDateString()===n.toDateString()?d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString([],{month:'short',day:'numeric'}) }
+
+// ════════════════════════════════════════════════════════════
+// LOG PANEL
+// ════════════════════════════════════════════════════════════
+function log(type, msg) {
+  eventLog.push({ type, msg, ts: Date.now() })
+  if (eventLog.length > 200) eventLog.shift()
+  if (ltabCur === 'log') renderLog()
+}
+
+window.openLog  = (t) => { document.getElementById('lpanel').classList.add('open'); swTab(t||ltabCur) }
+window.closeLog = ()  => document.getElementById('lpanel').classList.remove('open')
+window.swTab    = (t) => {
+  ltabCur = t
+  ;['peers','node','log'].forEach(x => document.getElementById('tab-'+x)?.classList.toggle('act', x===t))
+  if (t==='peers') renderLogPeers()
+  else if (t==='node') renderLogNode()
+  else renderLog()
+}
+
+function renderLogPeers() {
+  const keys = Object.keys(peerMap)
+  document.getElementById('lcontent').innerHTML = keys.length ? keys.map(pid => {
+    const p = peerMap[pid]
+    return `<div class="log-entry"><span class="etype">${escHtml(p.handle)}</span><br><span class="ets">${pid.slice(0,20)}…</span><br>Transport: <b>${(p.transport||'ws').toUpperCase()}</b> · Enc: ${p.aesKey?'AES-256':'none'} · Msgs: ${p.msgs.filter(m=>!m._sys).length}</div>`
+  }).join('') : '<div style="color:var(--txt3)">No peers</div>'
+}
+
+function renderLogNode() {
+  if (!node) { document.getElementById('lcontent').innerHTML = '<div style="color:var(--txt3)">Node not started</div>'; return }
+  const pid = node.peerId.toString()
+  const addrs = node.getMultiaddrs().map(a=>a.toString())
+  document.getElementById('lcontent').innerHTML = `
+    <div class="crow"><span class="ckey">Peer ID</span><span class="cval">${pid.slice(0,20)}…</span></div>
+    <div class="crow"><span class="ckey">Handle</span><span class="cval ok">${escHtml(myHandle)}</span></div>
+    <div class="crow"><span class="ckey">Connections</span><span class="cval">${node.getConnections().length}</span></div>
+    <div style="margin-top:8px;color:var(--txt3);font-size:10px">Multiaddrs</div>
+    ${addrs.map(a=>`<div class="log-entry">${escHtml(a)}</div>`).join('')}
+  `
+}
+
+function renderLog() {
+  document.getElementById('lcontent').innerHTML = eventLog.slice().reverse().map(e =>
+    `<div class="log-entry"><span class="ets">${fmtTime(e.ts)}</span> <span class="etype">[${e.type}]</span> ${escHtml(e.msg)}</div>`
+  ).join('')
+}
+
+// ════════════════════════════════════════════════════════════
+// INPUT
+// ════════════════════════════════════════════════════════════
+window.hk = (e) => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()} }
+window.hi = (el) => {
+  el.style.height='auto'
+  el.style.height=Math.min(el.scrollHeight,120)+'px'
+  document.getElementById('sbtn').classList.toggle('active',el.value.trim().length>0)
+}
+
+window.copyInvite = async () => {
+  const relayUrl = document.getElementById('relay-inp').value || 'ws://localhost:8765'
+  const url = `${location.origin}${location.pathname}?relay=${encodeURIComponent(relayUrl)}`
+  try { await navigator.clipboard.writeText(url) } catch {}
+  document.getElementById('invite-bar').textContent = '✓ Link copied — open on another machine'
+  setTimeout(()=>{ document.getElementById('invite-bar').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg> Share relay invite link' },3000)
+}
+
+function updateMyAvatar() {
+  const av = document.getElementById('my-av')
+  const pid = node?.peerId.toString() || 'me'
+  av.textContent = (myHandle||pid).slice(0,2).toUpperCase()
+  av.style.background = colorFor(pid)
+}
+
+// Handle name change
+document.getElementById('my-handle-inp').addEventListener('change', function() {
+  saveHandle(this.value.trim() || myHandle)
+  updateMyAvatar()
+  document.title = 'Mesh · ' + myHandle
+  announce()
+})
+
+document.getElementById('relay-inp').addEventListener('keydown', e => { if(e.key==='Enter') toggleRelay() })
+
+document.addEventListener('click', e => {
+  const p = document.getElementById('lpanel')
+  if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('.hbtn')) closeLog()
+})
+
+// ════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════
+;(async () => {
+  await initKeys()
+  loadHandle()
+  updateMyAvatar()
+
+  // Auto-connect from URL param or saved URL
+  const params = new URLSearchParams(location.search)
+  const relayParam = params.get('relay')
+  const savedRelay = localStorage.getItem('mesh-relay-url')
+  const autoUrl = relayParam || savedRelay || ''
+  if (autoUrl) {
+    document.getElementById('relay-inp').value = autoUrl
+    relayConnected = true
+    document.getElementById('relay-btn').textContent = 'Disconnect'
+    document.getElementById('relay-btn').classList.add('disc')
+    await startNode(autoUrl)
+  }
+})()
+
+window.sendMsg = sendMsg
 </script>
 </body>
 </html>
+
