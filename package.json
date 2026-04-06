@@ -1,0 +1,17 @@
+{
+  "name": "sovereign-mesh-relay",
+  "version": "1.0.0",
+  "description": "Pure WebSocket signaling relay for Sovereign Mesh",
+  "main": "mesh-relay.js",
+  "scripts": {
+    "start": "node mesh-relay.js",
+    "dev": "node --watch mesh-relay.js"
+  },
+  "dependencies": {
+    "ws": "^8.20.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN LICENSE-COMMUNITY"
+}
