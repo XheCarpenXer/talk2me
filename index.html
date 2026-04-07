@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -729,7 +728,10 @@ async function handleKeyAccept(msg){
 async function handleIncoming(msg,transport){
   const peer=peerVMs[msg.from];if(!peer)return;
   let text='[encrypted]';
-  if(peer.aesKey){try{text=await aesDecrypt(peer.aesKey,msg.envelope);}catch{text='[decrypt failed]';}}
+  // Check if envelope has actual content before attempting decryption
+  if(peer.aesKey && msg.envelope && msg.envelope.iv && msg.envelope.ct){
+    try{text=await aesDecrypt(peer.aesKey,msg.envelope);}catch{text='[decrypt failed]';}
+  }
   const cid=msg.correlationId||uid();
   const entry={type:'MSG_RECV',channelId:msg.from,correlationId:cid,causationId:msg.causationId||null,from:msg.from,payload:{text,encrypted:true,transport}};
   dispatch(myVM,entry);_record(peer,{...entry,id:uid(),ts:Date.now()});peer.corrSpace.add(cid);
