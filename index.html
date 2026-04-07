@@ -696,7 +696,8 @@ async function handlePeerAnnounce(msg,transport){
     bcSend(ack);wsSend({...ack,broadcast:true});
     const keyB64=await exportAESKey(globalKey);
     const offer={type:'KEY_OFFER',to:did,keyB64};
-    meshSend(offer,did);bcSend({...offer,from:myDID});
+    const offerTransport=meshSend(offer,did);
+    if(offerTransport!=='bc')bcSend({...offer,from:myDID});
     if(transport==='ws'&&!peerVMs[did]?.pc)setTimeout(()=>initWebRTC(did,myDID>did),300);
     renderContacts();
   }else{
@@ -716,7 +717,8 @@ async function handleKeyOffer(msg){
   const peer=peerVMs[msg.from];if(!peer||peer.aesKey)return;
   peer.aesKey=await importAESKey(msg.keyB64);
   const accept={type:'KEY_ACCEPT',to:msg.from,keyB64:msg.keyB64};
-  meshSend(accept,msg.from);bcSend({...accept,from:myDID});
+  const acceptTransport=meshSend(accept,msg.from);
+  if(acceptTransport!=='bc')bcSend({...accept,from:myDID});
   renderContacts();
 }
 
@@ -727,12 +729,12 @@ async function handleKeyAccept(msg){
 
 async function handleIncoming(msg,transport){
   const peer=peerVMs[msg.from];if(!peer)return;
-  let text='[encrypted]';
-  // Check if envelope has actual content before attempting decryption
-  if(peer.aesKey && msg.envelope && msg.envelope.iv && msg.envelope.ct){
-    try{text=await aesDecrypt(peer.aesKey,msg.envelope);}catch{text='[decrypt failed]';}
-  }
   const cid=msg.correlationId||uid();
+  if(peer.corrSpace.has(cid))return;
+  let text='[encrypted]';
+  const hasEnvelope=msg.envelope&&msg.envelope.iv&&msg.envelope.ct;
+  if(peer.aesKey&&hasEnvelope){try{text=await aesDecrypt(peer.aesKey,msg.envelope);}catch{text='[decrypt failed]';}}
+  else if(peer.aesKey&&!hasEnvelope){text='[message sent before key exchange completed]';}
   const entry={type:'MSG_RECV',channelId:msg.from,correlationId:cid,causationId:msg.causationId||null,from:msg.from,payload:{text,encrypted:true,transport}};
   dispatch(myVM,entry);_record(peer,{...entry,id:uid(),ts:Date.now()});peer.corrSpace.add(cid);
   const c=conv(myVM,peer);
